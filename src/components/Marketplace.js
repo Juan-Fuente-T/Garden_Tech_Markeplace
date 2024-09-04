@@ -1,23 +1,20 @@
 import Navbar from "./Navbar";
 import NFTTile from "./NFTTile";
-import MarketplaceJSON from "../Marketplace.json";
+import Footer from "./Footer";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { GetIpfsUrlFromPinata } from "../utils";
-import Web3 from 'web3';
+// import { GetIpfsUrlFromPinata } from "../utils";
+import { useContract } from '../ContractContext';
 
 export default function Marketplace() {
+const { contract, isConnected, address, handleConnection } = useContract();
 const ethers = require("ethers");
 
 // const [data, updateData] = useState(sampleData);
 const [data, updateData] = useState([]);
 console.log("data", data);
-console.log("DATA ENV", process.env.REACT_APP_ALCHEMY_API_URL, process.env.REACT_APP_PRIVATE_KEY );  
 // console.log("data.price");
-
-const [walletAddress, setWalletAddress] = useState(null);
-const [connected, toggleConnect] = useState(false);
-const [dataFetched, updateDataFetched] = useState(false);
+// const [dataFetched, updateDataFetched] = useState(false);
 const [loading, setLoading] = useState(true);
 
 // async function getAllNFTData(tokenId) {
@@ -95,13 +92,7 @@ const sampleData = [
 
 useEffect(() => {
   const fetchData = async () => {
-
-    // Realizar la llamada al contrato para obtener todos los NFT
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const addr = await signer.getAddress();
-      let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer)
-
+  if(contract){
     // Obtener el número total de NFTs
     const nftCount = await contract.getCurrentToken();
     console.log("nftCount", nftCount); 
@@ -122,95 +113,24 @@ useEffect(() => {
       };
     }));
     updateData(nftData);
-    // console.log("DATA_Marketplace", data);
-
-    // Verificar si hay una cuenta conectada
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-
-    if (accounts.length > 0) {
-      const address = accounts[0];
-      setWalletAddress(address);
-      toggleConnect(true);
-    } else {
-      setWalletAddress(null);
-      toggleConnect(false);
-    }
 
     setLoading(false);
   };
-
-  fetchData();
-}, []);
-
-useEffect(() => {
-  // console.log("DATA_Marketplace", data);
-}, [data]);
-
-useEffect(() => {
-  const checkMetaMask = async () => {
-    if (window.ethereum) {
-      try {
-        //const web3 = new Web3(window.ethereum);
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        if (accounts.length > 0) {
-          const address = accounts[0];
-          setWalletAddress(address);
-          toggleConnect(true);
-        } else {
-          console.error("No se seleccionó ninguna cuenta en MetaMask.");
-          setWalletAddress(null);
-          toggleConnect(false);
-        }
-      } catch (error) {
-        console.error("Error al habilitar MetaMask:", error);
-        setWalletAddress(null);
-        toggleConnect(false);
-      }
-      
-    } else {
-      console.error("MetaMask no está instalado.");
-      setWalletAddress(null);
-      toggleConnect(false);
-    }
-  };
-
-  checkMetaMask();
-}, []);
-
-const connectMetaMask = () => {
-  if (window.ethereum) {
-    /* eslint-disable no-unused-vars */
-    //const web3 = new Web3(window.ethereum);
-      window.ethereum.enable()
-      .then((accounts) => {
-        if (accounts.length > 0) {
-          const address = accounts[0];
-          setWalletAddress(address);
-          toggleConnect(true);
-        } else {
-          console.error("No se seleccionó ninguna cuenta en MetaMask.");
-          setWalletAddress(null);
-          toggleConnect(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Error al habilitar MetaMask:", error);
-        setWalletAddress(null);
-        toggleConnect(false);
-      });
-  } else {
-    console.error("MetaMask no está instalado.");
-    setWalletAddress(null);
-    toggleConnect(false);
   }
-};
+  fetchData();
+}, [contract]);
+
+
+
 console.log("DATA", data);
+
 return (
     <div>
       <Navbar></Navbar>
-      <div className="flex flex-col place-items-center m-10 mt-20">
+      <div className="flex flex-col place-items-center my-40 mx-10 text-center">
         <div className="md:text-xl font-bold text-white">
-          POPs
+          <h1 className="md:text-48 font-bold text-white mb-10 ">Garden Tech</h1>
+          <p className="p-2 md:text-xl font-bold text-white bg-gray-700 rounded-md">Encuentra aquí el NFT que buscas</p>
         </div>
         <div className="flex mt-5 justify-between flex-wrap max-w-screen-xl text-center">
           {data.map((data, index) => {
@@ -219,17 +139,19 @@ return (
           })}
         </div >
         <div className="flex mt-5 text-center text-white mt-12 mb-12" >
-          {walletAddress && (
-            <p>Wallet Address: {(walletAddress.substring(0, 15) + '...')}</p>
+          {address && (
+            <p>Wallet Address: {(address.substring(0, 15) + '...')}</p>
           )}
-          {!walletAddress && (
+          {!address && (
             <div>
               <p className="flex mt-5 justify-between flex-wrap max-w-screen-xl text-center text-white">Connect Your Wallet </p>
-              <button onClick={connectMetaMask} className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">{connected ? "Connected" : "Connect"}</button>
+              <button onClick={() => handleConnection(true)}  className="enableEthereumButton bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
+                {isConnected ? "Connected" : "Connect"}</button>
             </div>
           )}
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

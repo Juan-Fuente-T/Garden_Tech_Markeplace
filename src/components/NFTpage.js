@@ -1,4 +1,5 @@
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 import { useLocation, useParams } from 'react-router-dom';
 import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
@@ -141,11 +142,11 @@ export default function NFTPage(props) {
     return (
         <div style={{ "minHeight": "100vh" }}>
             <Navbar></Navbar>
-            <div className="flex flex-col items-center m-5" >
+            <div className="flex flex-col items-center m-5 mt-20" >
             {/* <img src={data?.image} alt="" className="w-2/5" /> */}
-            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 rounded-lg" />
+            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 border-2 border-gray-900 shadow-2xl rounded-lg mt-20" />
             {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
-            <div className="text-xl break-word m-5 md:mx-20   bg-blue-900 bg-opacity-70  space-y-8 text-white shadow-2xl rounded-lg border-2 p-12 w-4/5 md:w-3/5 overflow-auto" >
+            <div className="text-xl text-gray-100 break-word m-5 mb-24 md:mx-20  bg-gray-900 bg-opacity-70  space-y-8 text-white shadow-2xl rounded-lg border-2 border-gray-900 p-12 w-4/5 md:w-3/5 overflow-auto" >
                 <div>
                     Name: {data?.name}
                 </div>
@@ -176,6 +177,7 @@ export default function NFTPage(props) {
                 </div>
             </div>
         </div>
+        <Footer/>
     </div >
     )
 }

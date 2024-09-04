@@ -11,8 +11,9 @@ body {
   /*font-family: 'M PLUS 1p', sans-serif;*/
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: url("/public/images/bg.png");
-  background-size: 200% 180%;
+  background-image: url("/public/images/fondo.png");
+  /* background-image: url("/public/images/bg.png"); */
+  /* background-size: 200% 180%; */
   animation-duration: 3s;
   animation-timing-function: linear;
   animation-delay: 0s;
@@ -22,6 +23,11 @@ body {
   animation-play-state: running;
   animation-name: gradientTransform;
   background-repeat: no-repeat;
+  background-size: cover;
+  margin: auto;
+}
+.container {
+  margin: auto;
 }
 
 code {
