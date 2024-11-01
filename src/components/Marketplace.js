@@ -1,10 +1,11 @@
 import Navbar from "./Navbar";
 import NFTTile from "./NFTTile";
 import Footer from "./Footer";
+import InfoSection from "./InfoSection";
 import axios from "axios";
 import { useState, useEffect } from "react";
 // import { GetIpfsUrlFromPinata } from "../utils";
-import { useContract } from '../ContractContext';
+import { useContract } from '../context/ContractContext';
 
 export default function Marketplace() {
 const { contract, isConnected, address, handleConnection } = useContract();
@@ -93,64 +94,74 @@ const sampleData = [
 useEffect(() => {
   const fetchData = async () => {
   if(contract){
-    // Obtener el número total de NFTs
-    const nftCount = await contract.getCurrentToken();
-    console.log("nftCount", nftCount); 
-    // Obtener la lista de todos los NFTs
-    const allNFTs = await contract.getAllNFTs();
+    try {
+      // Obtener el número total de NFTs
+      const nftCount = await contract.getCurrentToken();
+      console.log("nftCount", nftCount); 
+      // Obtener la lista de todos los NFTs
+      const allNFTs = await contract.getAllNFTs();
 
-    // Procesar los NFT y actualizar el estado
-    const nftData = await Promise.all(allNFTs.map(async (item) => {
-      const tokenURI = await contract.tokenURI(item.tokenId);
-      console.log("TokenURI Marketplace: ", tokenURI);
-      const meta = await axios.get(tokenURI);
-      return {
-        tokenId: item.tokenId,
-        image: meta.data.image,
-        name: meta.data.name,
-        description: meta.data.description,
-        price: item.price,
-      };
-    }));
-    updateData(nftData);
+      // Procesar los NFT y actualizar el estado
+      const nftData = await Promise.all(allNFTs.map(async (item) => {
+        const tokenURI = await contract.tokenURI(item.tokenId);
+        console.log("TokenURI Marketplace: ", tokenURI);
+        const meta = await axios.get(tokenURI);
+        return {
+          tokenId: item.tokenId,
+          image: meta.data.image,
+          name: meta.data.name,
+          description: meta.data.description,
+          price: item.price,
+        };
+      }));
+      updateData(nftData);
 
-    setLoading(false);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
+    }
   };
   }
   fetchData();
 }, [contract]);
 
 
-
-console.log("DATA", data);
-
 return (
-    <div>
+  <div className="min-h-screen w-full mb-96 overflow-y-auto">
       <Navbar></Navbar>
-      <div className="flex flex-col place-items-center my-40 mx-10 text-center">
-        <div className="md:text-xl font-bold text-white">
-          <h1 className="md:text-48 font-bold text-white mb-10 ">Garden Tech</h1>
-          <p className="p-2 md:text-xl font-bold text-white bg-gray-700 rounded-md">Encuentra aquí el NFT que buscas</p>
-        </div>
+      <div className="flex flex-col place-items-center mt-32 mb-60 mx-10 text-center h-screen">
+        <div className="flex flex-col items-center md:text-xl font-bold text-white">
+          <h1 className="text-5xl py-4 px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
+          <p className="text-3xl py-3 px-10 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
+          <p className="text-3xl py-2 px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
+        </div> 
         <div className="flex mt-5 justify-between flex-wrap max-w-screen-xl text-center">
           {data.map((data, index) => {
             // return <NFTTile data={value} key={index}></NFTTile>;
             return <NFTTile data={data} key={index}></NFTTile>;
           })}
         </div >
-        <div className="flex mt-5 text-center text-white mt-12 mb-12" >
+        <div className="flex mt-5 text-center text-gray-900 mb-20" >
           {address && (
-            <p>Wallet Address: {(address.substring(0, 15) + '...')}</p>
+            <p className="font-bold text-xl py-1 px-4 mb-6 text-gray-100 bg-gray-800 rounded-md">Wallet Address: {(address.substring(0, 15) + '...')}</p>
           )}
           {!address && (
-            <div>
-              <p className="flex mt-5 justify-between flex-wrap max-w-screen-xl text-center text-white">Connect Your Wallet </p>
-              <button onClick={() => handleConnection(true)}  className="enableEthereumButton bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
-                {isConnected ? "Connected" : "Connect"}</button>
+            <>
+            <div className="flex flex-col justify-center items-center mt-8">
+                <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
+                <div>
+                <button onClick={() => handleConnection(true)}  className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
+                    {isConnected ? "Connected" : "Connect"}</button>
+                </div>
             </div>
+            </>
           )}
         </div>
       </div>
+      {/* <div className="w-full border-2 border-red-800 px-0 mx-0">
+      <InfoSection/>
+      </div> */}
       <Footer/>
     </div>
   );

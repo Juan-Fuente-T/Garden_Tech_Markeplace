@@ -3,15 +3,18 @@ import Footer from "./Footer";
 import { useState } from "react";
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../pinata";
 import Marketplace from '../Marketplace.json';
-import { useLocation } from "react-router";
+// import { useLocation } from "react-router";
+import { useContract } from '../context/ContractContext';
 
 export default function SellNFT () {
+    // const { contract, address, isConnected, handleConnection } = useContract();
+    const { address, isConnected, handleConnection } = useContract();
     
     const [formParams, updateFormParams] = useState({ name: '', description: '', price: ''});
     const [fileURL, setFileURL] = useState(null);
     const ethers = require("ethers");
     const [message, updateMessage] = useState('');
-    const location = useLocation();
+    // const location = useLocation();
 
     async function disableButton() {
         const listButton = document.getElementById("list-button")
@@ -117,9 +120,20 @@ export default function SellNFT () {
 
 
     return (
-        <div className="min-h-screen w-full"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
+        <div className="min-h-screen w-full mb-32"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
             <Navbar />
-            <div className="min-h-screen flex justify-center items-center items-center mx-30 w-full">
+            {!isConnected ? (
+                    <>
+                    <div className="flex flex-col justify-center items-center h-screen">
+                        <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
+                        <div>
+                        <button onClick={() => handleConnection(true)}  className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
+                            {isConnected ? "Connected" : "Connect"}</button>
+                        </div>
+                    </div>
+                    </>
+                ) : (
+            <div className="min-h-screen flex justify-center items-center w-full mb-60 z-40">
                 {/* Ajustamos el form con clases similares al segundo componente */}
                 <form className="text-xl text-gray-100 break-word mx-5 md:mx-20 bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 p-12  w-full md:w-3/5 max-w-none">
                     <h3 className="text-center font-bold text-gray-100 mb-8">Upload your NFT to the APP</h3>
@@ -145,6 +159,7 @@ export default function SellNFT () {
                     </button>
                 </form>
             </div>
+            )}
             <Footer/>
         </div>
     );

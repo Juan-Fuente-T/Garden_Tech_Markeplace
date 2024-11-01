@@ -5,7 +5,7 @@ import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
 import { ethers } from "ethers";
 import NFTTile from "./NFTTile";
-import { useContract } from "../ContractContext";
+import { useContract } from '../context/ContractContext';
 import { useEffect, useState  } from "react";
 
 export default function Profile () {
@@ -29,14 +29,6 @@ export default function Profile () {
         if (!contract) return;
         try {
         let sumPrice = 0;
-
-        // //After adding your Hardhat network to your metamask, this code will get providers and signers
-        // const provider = new ethers.providers.Web3Provider(window.ethereum);
-        // const signer = provider.getSigner();
-        // const addr = await signer.getAddress();
-
-        // //Pull the deployed contract instance
-        // let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer)
 
         //create an NFT Token
         let transaction = await contract.getMyNFTs()
@@ -80,16 +72,17 @@ export default function Profile () {
     return (
         <div className="profileClass" style={{"minHeight":"100vh"}}>
             <Navbar />
-            <div className="profileClass">
+            <div className="mb-80">
                 {!isConnected ? (
                     <>
                     <div >
                     </div>
                     <div className="flex flex-col justify-center items-center h-screen">
-                        <h2 className="font-bold p-4 mb-6 text-gray-100 bg-gray-800 rounded-lg">Por favor, conéctate para poder ver tus NFTs{address}</h2>   
-                        <button onClick={() => handleConnection(true)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                            Connect Wallet
-                        </button>
+                        <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
+                        <div>
+                        <button onClick={() => handleConnection(true)}  className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
+                            {isConnected ? "Connected" : "Connect"}</button>
+                        </div>
                     </div>
                     </>
                 ) : (
@@ -114,7 +107,7 @@ export default function Profile () {
                                     <NFTTile data={value} key={index} />
                                 ))}
                             </div>
-                            <div className="mt-10 text-xl">
+                            <div className="mt-10 font-bold text-2xl text-gray-800">
                                 {data.length === 0 ? "Oops, No NFT data to display":""}
                             </div>
                         </div>

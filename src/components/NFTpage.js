@@ -1,31 +1,31 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
 import { useState } from "react";
 import { GetIpfsUrlFromPinata } from "../utils";
+import { useContract } from '../context/ContractContext';
 import { useEffect } from "react";
+import { ethers } from "ethers";
 
 export default function NFTPage(props) {
-
     const [data, updateData] = useState({});
     const [message, updateMessage] = useState("");
-    const [currAddress, updateCurrAddress] = useState("0x");
     const [dataFetched, updateDataFetched] = useState(false);
     const [tokenId, setTokenId] = useState(0);
     const [accounts, setAccounts] = useState([]);
+    const { contract, address, isConnected} = useContract();
+
+    const params = useParams();
+    console.log("params.tokenId", params.tokenId);
+    // const tokenId = parseInt(params.tokenId.toString());
+    const [error, setError] = useState(null);
 
     async function getNFTData(tokenId) {
-        try {
-            const ethers = require("ethers");
-            //After adding your Hardhat network to your metamask, this code will get providers and signers
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const addr = await signer.getAddress();
-            //Pull the deployed contract instance
-            let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer)
-            //create an NFT Token
+        if(contract){
+            try {
+                //create an NFT Token
             var tokenURI = await contract.tokenURI(tokenId);
             const listedToken = await contract.getListedTokenForId(tokenId);
             tokenURI = GetIpfsUrlFromPinata(tokenURI);
@@ -45,8 +45,7 @@ export default function NFTPage(props) {
             console.log(item);
             updateData(item);
             updateDataFetched(true);
-            console.log("address", addr)
-            updateCurrAddress(addr);
+            console.log("address", address)
         } catch (error) {
             console.error("Error en getNFTData:", error);
             updateData(null);
@@ -54,18 +53,12 @@ export default function NFTPage(props) {
             // Puedes manejar el error de manera específica aquí
         }
     }
-
+    }
+    
 
     async function buyNFT(tokenId) {
+        if(contract){
         try {
-            const ethers = require("ethers");
-            //After adding your Hardhat network to your metamask, this code will get providers and signers
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-
-            //Pull the deployed contract instance
-            let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer);
-
             // Verificar que data.price no sea undefined
             if (!data?.price) {
                 throw new Error("Price is not defined");
@@ -87,11 +80,13 @@ export default function NFTPage(props) {
             alert("Upload Error" + e)
         }
     }
+    }
 
-    const params = useParams();
-    console.log("params.tokenId", params.tokenId);
-    // const tokenId = parseInt(params.tokenId.toString());
-    const [error, setError] = useState(null);
+    useEffect(() => {
+        console.log("isConnected:", isConnected);
+        console.log("data:", data);
+      }, [isConnected, data]);
+
 
     useEffect(() => {
         if (window.ethereum) {
@@ -128,7 +123,7 @@ export default function NFTPage(props) {
     }
 
     if (!dataFetched) {
-        return <div>Cargando...</div>;
+        return <div className="w-fit mt-60 text-gray-900 text-5xl font-bold bg-gray-100 py-2 px-8 rounded-md">Cargando...</div>;
     }
 
     if (!data) {
@@ -137,46 +132,61 @@ export default function NFTPage(props) {
 
     if (typeof data?.image == "string")
         data.image = GetIpfsUrlFromPinata(data?.image);
-
-
+    
     return (
-        <div style={{ "minHeight": "100vh" }}>
+        <div className="mb-12" style={{ "minHeight": "100vh" }}>
             <Navbar></Navbar>
-            <div className="flex flex-col items-center m-5 mt-20" >
+            {!isConnected ? (
+                    <>
+                    <div className="flex flex-col justify-center items-center h-screen">
+                        <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2> 
+                    </div>
+                    </>
+                ) : data ? (      
+            <div className="flex flex-col items-center m-5 mt-20 mb-80" >
             {/* <img src={data?.image} alt="" className="w-2/5" /> */}
-            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 border-2 border-gray-900 shadow-2xl rounded-lg mt-20" />
+            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg mt-20" />
             {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
-            <div className="text-xl text-gray-100 break-word m-5 mb-24 md:mx-20  bg-gray-900 bg-opacity-70  space-y-8 text-white shadow-2xl rounded-lg border-2 border-gray-900 p-12 w-4/5 md:w-3/5 overflow-auto" >
-                <div>
+            <div className="flex flex-col text-sm lg:text-2xl text-gray-100 w-fit w-2/3 break-word m-2 mt-4 lg:m-5 mb-24 p-4 lg:p-12 max-w-4xl   bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
+                <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
                     Name: {data?.name}
                 </div>
-                <div>
+                <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
                     Description: {data?.description}
                 </div>
-                <div>
+                <div className="bg-gray-800 py-1 px-4 w-fit rounded-md">
                     Price: <span className="">{data?.price + " ETH"}</span>
                 </div>
-                <div>
-                    Owner: <span className="text-sm">{data?.owner}</span>
+                <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                    Owner: <span className="whitespace-nowrap">{data?.owner.toLowerCase() === "0xb5058c943d65f9cb49278ea9edc79b7cef748ffb"? "Garden Tech NFT" : data?.owner}</span>
+                </div>
+                <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                    Seller: <span className="whitespace-nowrap">{data?.seller.toLowerCase() === address.toLowerCase()? "You" : data?.seller}</span>
                 </div>
                 <div>
-                    Seller: <span className="text-sm">{data?.seller}</span>
-                </div>
-                <div>
-                    {/* {currAddress !== data.owner && currAddress !== data?.seller?
+                    {/* {address !== data.owner && address !== data?.seller?
                         <button className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" onClick={() => buyNFT(tokenId)}>Buy this NFT</button>
                         : <div className="text-emerald-700">You are the owner of this NFT</div>
                     } */}
                     {accounts.length > 0 ?
-                        currAddress === data.seller || currAddress === data.owner ?
-                            <div className="text-white">You are the owner of this NFT</div>
-                            : <button className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" onClick={() => buyNFT(tokenId)}>Buy this NFT</button>
-                        : <div className="text-red-400">Please connect your wallet to buy this NFT</div>
+                        // address.toLowerCase() === data.seller.toLowerCase() || address.toLowerCase() === data.owner.toLowerCase() ?
+                        //     <div className="text-white">You are the owner of this NFT</div> : 
+                            <div className="flex justify-start"> 
+                                <button className="items-end enableEthereumButton bg-sky-500 hover:bg-sky-600 hover:scale-105 text-sky-100 font-bold py-2 px-4 rounded text-lg font-bold" onClick={() => buyNFT(tokenId)}>Buy this NFT</button>
+                            </div>
+                        : <div className="text-red-400">
+                            Please connect your wallet to buy this NFT
+                          </div>
                     }
                     <div className="text-green text-center mt-3">{message}</div>
                 </div>
             </div>
+        </div> 
+                ) : (
+        <div className="flex flex-col justify-center items-center h-screen border-2 border-red-600">
+            <h2 className="font-bold text-3xl p-4 mb-6 text-white bg-gray-800">No data available</h2>
         </div>
+        )}
         <Footer/>
     </div >
     )
