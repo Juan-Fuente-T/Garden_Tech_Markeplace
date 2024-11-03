@@ -139,15 +139,16 @@ export default function NFTPage(props) {
             {!isConnected ? (
                     <>
                     <div className="flex flex-col justify-center items-center h-screen">
-                        <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2> 
+                    <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
                     </div>
                     </>
-                ) : data ? (      
-            <div className="flex flex-col items-center m-5 mt-20 mb-80" >
+                ) : data ? (  
+                    <div className="flex flex-col items-center m-5 mt-20 mb-80" >
+                <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg mt-20">Buy this NFT</p>    
             {/* <img src={data?.image} alt="" className="w-2/5" /> */}
-            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg mt-20" />
+            <img src={data?.image} alt="" className="w-4/5 md:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg mt-8" />
             {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
-            <div className="flex flex-col text-sm lg:text-2xl text-gray-100 w-fit w-2/3 break-word m-2 mt-4 lg:m-5 mb-24 p-4 lg:p-12 max-w-4xl   bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
+            <div className="flex flex-col text-sm lg:text-2xl text-gray-100 w-full md:w-2/3 break-word m-2 mt-4 lg:m-5 mb-24 p-4 lg:p-12 max-w-4xl   bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
                 <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
                     Name: {data?.name}
                 </div>

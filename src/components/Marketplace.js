@@ -128,28 +128,28 @@ useEffect(() => {
 
 
 return (
-  <div className="min-h-screen w-full mb-96 overflow-y-auto">
+  <div className="min-h-screen w-full mb-12 overflow-y-auto">
       <Navbar></Navbar>
-      <div className="flex flex-col place-items-center mt-32 mb-60 mx-10 text-center h-screen">
+      <div className=" flex flex-col place-items-center mt-32 mb-60 text-center">
         <div className="flex flex-col items-center md:text-xl font-bold text-white">
-          <h1 className="text-5xl py-4 px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
-          <p className="text-3xl py-3 px-10 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
-          <p className="text-3xl py-2 px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
+          <h1 className="text-2xl lg:text-5xl py-2 px-4 lg:py-4 lg:px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
+          <p className="text-lg lg:text-3xl py-1 px-4 lg:py-3 lg:px-10 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
+          <p className="text-md lg:text-3xl py-2 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
         </div> 
-        <div className="flex mt-5 justify-between flex-wrap max-w-screen-xl text-center">
-          {data.map((data, index) => {
+        <div className="grid gap-4 mt-5 justify-between flex-wrap sm:max-w-full md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {data.map((data, index) => {
             // return <NFTTile data={value} key={index}></NFTTile>;
             return <NFTTile data={data} key={index}></NFTTile>;
           })}
         </div >
         <div className="flex mt-5 text-center text-gray-900 mb-20" >
           {address && (
-            <p className="font-bold text-xl py-1 px-4 mb-6 text-gray-100 bg-gray-800 rounded-md">Wallet Address: {(address.substring(0, 15) + '...')}</p>
+            <p className="font-bold text-lg lg:text-xl py-1 px-4 mb-6 mx-4 text-gray-100 bg-gray-800 rounded-md">Wallet Address: {(address.substring(0, 15) + '...')}</p>
           )}
           {!address && (
             <>
             <div className="flex flex-col justify-center items-center mt-8">
-                <h2 className="font-bold text-3xl p-4 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
+                <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>   
                 <div>
                 <button onClick={() => handleConnection(true)}  className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
                     {isConnected ? "Connected" : "Connect"}</button>
