@@ -18,13 +18,12 @@ export const ContractProvider = ({ children }) => {
   const [provider, setProvider] = useState(null);
 
   const handleConnection = async (requestAccounts = false) => {
-    console.log("RequestAccounts in Context", requestAccounts);
+
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         setProvider(provider);
         try {
           let accounts;
-    
           // Si requestAccounts es verdadero, solicitará la conexión
           if (requestAccounts) {
             accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -33,7 +32,7 @@ export const ContractProvider = ({ children }) => {
           }
             
           if (accounts.length === 0) {
-            console.error("No hay cuentas disponibles. Asegúrate de que la wallet esté desbloqueada.");
+            console.error("There are no accounts available. Make sure the wallet is unlocked.");
             setIsConnected(false);
             setAddress(null);
             return;
@@ -41,7 +40,6 @@ export const ContractProvider = ({ children }) => {
 
             const signer = provider.getSigner();
             const userAddress = accounts[0]; // Usa la cuenta obtenida
-
             
             setAddress(userAddress);
             setIsConnected(true);
@@ -68,12 +66,12 @@ export const ContractProvider = ({ children }) => {
       });
 
     } catch (error) {
-      console.error("Error al conectar:", error);
+      console.error("Connection failed: ", error);
       setIsConnected(false);
       setAddress(null);
     }
   } else {
-    alert('Por favor, instala una wallet como MetaMask o Trust Wallet.');
+    alert('No wallet detected. Please install Metamask or another wallet.');
   }
 };
 
@@ -81,9 +79,8 @@ const checkNetwork = async () => {
   if (window.ethereum) {
     const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
     if (currentChainId !== expectedChainId) {
-      // La red es incorrecta
       alert('Please switch to the correct network in the wallet');
-      // Opcionalmente, puedes intentar cambiar la red automáticamente
+      // Intentar cambiar la red automáticamente
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
@@ -100,7 +97,6 @@ const checkNetwork = async () => {
       handleConnection(false);
       checkNetwork();
     }, []);
-   // El array vacío asegura que esto se ejecute solo una vez cuando el componente se monta
 
   return (
     <ContractContext.Provider value={{ contract, address, isConnected, provider, handleConnection}}>

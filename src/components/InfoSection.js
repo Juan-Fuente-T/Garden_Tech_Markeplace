@@ -10,48 +10,22 @@ function InfoSection (data) {
               <img className="rounded-md w-2/5 justify-center" src="/images/icono3.png" alt="Icono" />              
               {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Sube la imagen que desees</h3> */}
               <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Selecciona una imagen</h3>
-              {/* <p className="">{description}</p> */}
           </div>
           <div className="flex flex-col items-center rounded-md">
-              {/* <img className="" alt="Icono" /> */}
               <img className="rounded-md w-2/5 justify-center"  src="/images/icono4.png" alt="Icono" />
               {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Indica el precio de venta</h3> */}
               <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Marca precio de venta</h3>
-              {/* <p className="">{description}</p> */}
             </div>
           <div className="flex flex-col items-center rounded-md">
           <img className="rounded-md w-2/5 justify-center"  src="/images/icono5.png" alt="Icono" />
           {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Publica tu NFT personalizado</h3> */}
           <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Mintea otro nuevo NFT</h3>
-          {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md">Indica el precio de venta</h3> */}
-              {/* <p className="">{description}</p> */}
             </div>
           <div className="flex flex-col items-center rounded-md">
           <img className="rounded-md w-2/5 justify-center"  src="/images/icono2.png" alt="Icono" />
               {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Compralo o mantenlo a la venta</h3> */}
               <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Compra o vende tu NFT</h3>
-              {/* <p className="">{description}</p> */}
             </div>
-            {/* <AppUseSection
-              icon="./icono1.png"
-              title="Ofertas de Venta"
-              description="Vende tu Nft indicando la dirección,  el Id, su precio y fecha tope."
-            />
-            <AppUseSection
-              icon="./icono2.png"
-              title="Ofertas de Compra"
-              description="Publica el Nft que desees, indicando el precio que deseas pagar."
-            />
-            <AppUseSection
-              icon="./icono3.png"
-              title="Aceptar Ofertas"
-              description="Acepta ofertas de venta, enviando el precio, o de compra recibiendo el valor"
-            />
-            <AppUseSection
-              icon="./icono4.png"
-              title="Cancelar Ofertas"
-              description="Cancela pasada la fecha límite, recuperando el ether depositado y la titularidad del NFT."
-            /> */}
           </div>
         </div>
     )

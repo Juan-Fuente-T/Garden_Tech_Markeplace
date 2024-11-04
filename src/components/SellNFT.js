@@ -8,12 +8,13 @@ import { useContract } from '../context/ContractContext';
 
 export default function SellNFT() {
     // const { contract, address, isConnected, handleConnection } = useContract();
-    const { address, isConnected, handleConnection } = useContract();
+    const { contract, address, isConnected, handleConnection } = useContract();
 
     const [formParams, updateFormParams] = useState({ name: '', description: '', price: '' });
     const [fileURL, setFileURL] = useState(null);
     const ethers = require("ethers");
     const [message, updateMessage] = useState('');
+    const [isMinting, setIsMinting] = useState(false);
     // const location = useLocation();
 
     async function disableButton() {
@@ -42,13 +43,12 @@ export default function SellNFT() {
             if (response.success === true) {
                 enableButton();
                 updateMessage("")
-                console.log("Uploaded image to Pinata: ", response.pinataURL)
+                // console.log("Uploaded image to Pinata: ", response.pinataURL)
                 setFileURL(response.pinataURL);
-                console.log("fileURL updated:", fileURL);
             }
         }
         catch (e) {
-            console.log("Error during file upload", e);
+            console.error("Error during file upload", e);
         }
     }
 
@@ -69,40 +69,37 @@ export default function SellNFT() {
             //upload the metadata JSON to IPFS
             const response = await uploadJSONToIPFS(nftJSON);
             if (response.success === true) {
-                console.log("Uploaded JSON to Pinata: ", response);
-                console.log("Uploaded JSON PinataURL: ", response.pinataURL);
+                // console.log("Uploaded JSON PinataURL: ", response.pinataURL);
                 return response.pinataURL;
             }
         }
         catch (e) {
-            console.log("error uploading JSON metadata:", e)
+            console.error("error uploading JSON metadata:", e)
         }
     }
 
     async function listNFT(e) {
-        console.log("listNFT called");
         e.preventDefault();
 
         //Upload data to IPFS
         try {
+            setIsMinting(true);
             const metadataURL = await uploadMetadataToIPFS();
             if (metadataURL === -1)
                 return;
-            //After adding your Hardhat network to your metamask, this code will get providers and signers
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            
+            // const provider = new ethers.providers.Web3Provider(window.ethereum);
+            // const signer = provider.getSigner();
             disableButton();
             updateMessage("Uploading NFT(takes 5 mins).. please dont click anything!")
-
-            //Pull the deployed contract instance
-            let contract = new ethers.Contract(Marketplace.address, Marketplace.abi, signer)
+            // let contract = new ethers.Contract(Marketplace.address, Marketplace.abi, signer)
 
             //massage the params to be sent to the create NFT request
             const price = ethers.utils.parseUnits(formParams.price, 'ether')
             let listingPrice = await contract.getListPrice()
             listingPrice = listingPrice.toString()
 
-            //actually create the NFT
+            //create the NFT
             let transaction = await contract.createToken(metadataURL, price, { value: listingPrice })
             await transaction.wait()
 
@@ -110,6 +107,7 @@ export default function SellNFT() {
             enableButton();
             updateMessage("");
             updateFormParams({ name: '', description: '', price: '' });
+            setIsMinting(false);
             window.location.replace("/")
         }
         catch (e) {
@@ -134,11 +132,9 @@ export default function SellNFT() {
                     </div>
                 </>
             ) : (
-                <div className="flex flex-col justify-center items-center w-full-2 my-auto z-40 mx-2 overflow-y-auto overflow-x-hidden" >
+                <div className="flex flex-col justify-center items-center w-full-2 z-40 mt-24 lg:mt-32 mx-2 overflow-y-auto overflow-x-hidden" >
                     <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg mb-12">Mint your new NFT</p>
-
-                    {/* Ajustamos el form con clases similares al segundo componente */}
-                    <form className="text-xl text-gray-100 break-word mx-5 md:mx-20 bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 p-4 lg:p-12 w-full md:w-4/5 lg:w-3/5 max-w-none">
+                    <form className="text-xl text-gray-100 break-word  my-auto mx-5 md:mx-20 bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 p-4 lg:p-12 w-full md:w-4/5 lg:w-3/5 max-w-none">
                         <h3 className="text-center font-bold text-gray-100 mb-8">Upload your NFT to the APP</h3>
                         <div className="mb-4">
                             <label className="block text-gray-100  text-sm font-bold mb-2" htmlFor="name">NFT Name</label>
@@ -158,7 +154,7 @@ export default function SellNFT() {
                         </div>
                         <div className="text-red-500 text-center mt-3">{message}</div>
                         <button onClick={listNFT} className="font-bold text-gray-900 mt-10 w-full bg-gray-400 rounded p-2 shadow-lg hover:bg-gray-300" id="list-button">
-                            List NFT
+                            Mint NFT
                         </button>
                     </form>
                 </div>
