@@ -1,8 +1,8 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import Loader from "./Loader";
 import { useState } from "react";
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../pinata";
-import Marketplace from '../Marketplace.json';
 // import { useLocation } from "react-router";
 import { useContract } from '../context/ContractContext';
 
@@ -107,11 +107,12 @@ export default function SellNFT() {
             enableButton();
             updateMessage("");
             updateFormParams({ name: '', description: '', price: '' });
-            setIsMinting(false);
             window.location.replace("/")
         }
         catch (e) {
             alert("Upload error" + e)
+        }finally{
+            setIsMinting(false);
         }
     }
 
@@ -119,8 +120,9 @@ export default function SellNFT() {
     return (
         // <div className="min-h-screen w-full mt-36"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
         // <div className="h-auto w-full mt-36 mb-60 overflow-y-auto"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
-        <div className="flex flex-col h-screen w-full mt-4 mb-20 overflow-y-auto"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
+        <div className="flex flex-col h-screen w-full mt-4 mb-20 overflow-y-auto"> 
             <Navbar />
+            {isMinting ? Loader("Minting your NFT") : null}
             {!isConnected ? (
                 <>
                     <div className="flex flex-col justify-center items-center">

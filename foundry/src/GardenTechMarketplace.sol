@@ -1,17 +1,17 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 //Console functions to help debug the smart contract just like in Javascript
 //import "hardhat/console.sol";
 import "../lib/forge-std/src/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
-import "../../node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "../../node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {UUPSUpgradeable} from "../../node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "../../node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol";
 //import {IERC721} from "../../node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol";
 //import "../../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
 
     ////////////////////////////////////////////////////////////////
     ///                 Garden Tech Marketplace                  ///
@@ -22,7 +22,6 @@ import {Initializable} from "../../node_modules/@openzeppelin/contracts/proxy/ut
  * This contract extends ERC721URIStorage, allowing for the creation and management of NFTs.
  */
 contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgradeable, Initializable{
-    using Counters for Counters.Counter;
 
     ////////////////////////////////////////////////////////////////
     ///                       Variables                          ///
@@ -40,9 +39,9 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         bool currentlyListed;
     }
     //_tokenIds variable has the most recent minted tokenId
-    Counters.Counter private _tokenIds;
+    uint128 private _tokenIds;
     //Keeps track of the number of items sold on the marketplace
-    Counters.Counter private _itemsSold;
+    uint128 private _itemsSold;
     //owner is the contract address that created the smart contract
     address payable owner;
     //The fee charged by the marketplace to be allowed to list an NFT
@@ -139,11 +138,10 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         uint256 price
     ) public payable returns (uint256) {
         //Increment the tokenId counter, which is keeping track of the number of minted NFTs
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
 
         //Mint the NFT with tokenId newTokenId to the address who called createToken
-        console.log("Sender", msg.sender);
         _safeMint(msg.sender, newTokenId);
 
         //Map the tokenId to the tokenURI (which is an IPFS URL with the NFT metadata)
@@ -188,7 +186,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         view
         returns (ListedToken memory)
     {
-        uint256 currentTokenId = _tokenIds.current();
+        uint256 currentTokenId = _tokenIds;
         return idToListedToken[currentTokenId];
     }
 
@@ -208,7 +206,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
      * @return The current token ID.
      */
     function getCurrentToken() public view returns (uint256) {
-        return _tokenIds.current();
+        return _tokenIds;
     }
 
     /**
@@ -254,7 +252,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     * @return An array of ListedToken objects representing all NFTs currently listed for sale.
     */
     function getAllNFTs() public view returns (ListedToken[] memory) {
-        uint256 nftCount = _tokenIds.current();
+        uint256 nftCount = _tokenIds;
         ListedToken[] memory tokens = new ListedToken[](nftCount);
         uint256 currentIndex = 0;
 
@@ -278,7 +276,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     * @return An array of ListedToken objects representing all NFTs owned or sold by the current user.
     */
     function getMyNFTs() public view returns (ListedToken[] memory) {
-        uint256 totalItemCount = _tokenIds.current();
+        uint256 totalItemCount = _tokenIds;
         uint256 itemCount = 0;
         uint256 currentIndex = 0;
 
@@ -331,7 +329,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         //update the details of the token
         idToListedToken[tokenId].currentlyListed = true;
         idToListedToken[tokenId].seller = payable(msg.sender);
-        _itemsSold.increment();
+        _itemsSold++;
 
         //Actually transfer the token to the new owner
         if(idToListedToken[tokenId].owner != address(this)){
@@ -352,18 +350,18 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     ///                   Reception Functions                    ///
     ////////////////////////////////////////////////////////////////
 
-    /**
-    * @notice Handles the reception of Non-Fungible Tokens (NFTs) by the contract.
-    * @dev This function is called when an NFT is sent to the contract. It must return a specific value
-    * to indicate that the contract accepts the NFT.
-    * Emits no events by default. Any additional actions or events related to the received NFT
-    * should be specified within the function's implementation.
-    * @param operator The address which called `safeTransferFrom` function.
-    * @param from The address which previously owned the NFT.
-    * @param tokenId The NFT identifier which is being transferred.
-    * @param data Additional data with no specified format.
-    * @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))` to indicate that the contract accepts the NFT.
-    */
+    // /**
+    // * @notice Handles the reception of Non-Fungible Tokens (NFTs) by the contract.
+    // * @dev This function is called when an NFT is sent to the contract. It must return a specific value
+    // * to indicate that the contract accepts the NFT.
+    // * Emits no events by default. Any additional actions or events related to the received NFT
+    // * should be specified within the function's implementation.
+    // * @param operator The address which called `safeTransferFrom` function.
+    // * @param from The address which previously owned the NFT.
+    // * @param tokenId The NFT identifier which is being transferred.
+    // * @param data Additional data with no specified format.
+    // * @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))` to indicate that the contract accepts the NFT.
+    // */
 
     function onERC721Received(
         address /*operator*/,
