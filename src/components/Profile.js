@@ -1,5 +1,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import InfoSection from "./InfoSection";
+import Loader from "./Loader";
 import { useParams } from 'react-router-dom';
 import axios from "axios";
 import { ethers } from "ethers";
@@ -11,6 +13,7 @@ export default function Profile() {
     const [data, updateData] = useState([]);
     const [totalPrice, updateTotalPrice] = useState("0");
     const [dataFetched, updateFetched] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const { contract, address, isConnected, handleConnection } = useContract();
 
@@ -56,6 +59,7 @@ export default function Profile() {
 
             updateData(items);
             updateFetched(true);
+            setLoading(false);
             // updateAddress(addr);
             updateTotalPrice(sumPrice.toPrecision(3));
         } catch (error) {
@@ -67,14 +71,16 @@ export default function Profile() {
         getNFTData(tokenId);
 
     return (
-        <div className="profileClass" style={{ "minHeight": "100vh" }}>
+        // <div className="profileClass" style={{ "minHeight": "100vh" }}>
+        <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="mb-80 text-xs mx-2 my-auto ">
+            <div className="flex-grow overflow-y-auto ">
+            {loading && address ? <Loader loadingText={"Downloading..."} /> : null}
+                {/* <div className="mb-80 text-xs mx-2 my-auto "> */}
+                {/* <div className="text-xs mx-2 my-auto"> */}
                 {!isConnected ? (
                     <>
-                        <div >
-                        </div>
-                        <div className="flex flex-col justify-center items-center h-screen">
+                        <div className="flex flex-col justify-center items-center h-full">
                             <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>
                             <div>
                                 <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
@@ -83,9 +89,9 @@ export default function Profile() {
                         </div>
                     </>
                 ) : (
-                    <>
+                    <div className="p-4 pb-80"> {/* Añadido padding-bottom para dar espacio al InfoSection */}
                         <div className="flex text-center flex-col items-center mt-10 md:text-2xl text-white">
-                            <div className="flex flex-row text-center justify-center mt-10  md:text-2xl">
+                            <div className="flex flex-row text-center justify-center mt-10 md:text-2xl">
                                 <h2 className="font-bold mt-16 py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">Your wallet address: {address}</h2>
                             </div>
                         </div>
@@ -99,20 +105,24 @@ export default function Profile() {
                         </div>
                         <div className="flex flex-col text-center items-center mt-10 mb-4 text-white">
                             <h2 className="font-bold text-xl mt-3 py-1 px-2 lg:p-4 p-3 text-gray-100 bg-gray-800 rounded-lg">Your NFTs</h2>
-                            <div className="flex justify-center flex-wrap  max-w-screen-xl gap-4">
-                                {/* <div className="grid gap-4 mt-10 justify-center flex-wrap max-w-screen-xl sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> */}
+                            <div className="flex justify-center flex-wrap max-w-screen-xl gap-4">
                                 {data.map((value, index) => (
                                     <NFTTile data={value} key={index} />
                                 ))}
                             </div>
-                            <div className="mt-10 mx-auto px-4 font-bold text-lg lg:text-2xl text-gray-800 border-2 border-gray-800 rounded-lg">
-                                {data.length === 0 ? "Oops, No NFT data to display" : ""}
-                            </div>
+                            {data.length === 0 && (
+                                <div className="mt-10 mx-auto px-4 font-bold text-lg lg:text-2xl text-gray-800 border-2 border-gray-800 rounded-lg">
+                                    Oops, No NFT data to display
+                                </div>
+                            )}
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
-            <Footer />
+            <div className="mt-auto relative z-10">
+                <InfoSection />
+                <Footer />
+            </div>
         </div>
     )
 }

@@ -1,5 +1,6 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import InfoSection from "./InfoSection";
 import { useParams } from 'react-router-dom';
 import axios from "axios";
 import { useState } from "react";
@@ -177,6 +178,7 @@ export default function NFTPage(props) {
                     <h2 className="font-bold text-3xl p-4 mb-6 text-white bg-gray-800">No data available</h2>
                 </div>
             )}
+            <InfoSection/>
             <Footer />
         </div >
     )

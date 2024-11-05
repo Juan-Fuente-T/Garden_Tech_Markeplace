@@ -2,6 +2,7 @@ import Navbar from "./Navbar";
 import NFTTile from "./NFTTile";
 import Footer from "./Footer";
 import Loader from "./Loader";
+import InfoSection from "./InfoSection";
 import axios from "axios";
 import { useState, useEffect } from "react";
 // import { GetIpfsUrlFromPinata } from "../utils";
@@ -115,8 +116,10 @@ export default function Marketplace() {
 
 
   return (
-    <div className="min-h-screen w-full mb-12 overflow-y-auto">
-      <Navbar></Navbar>
+    // <div className="min-h-screen w-full mb-12 overflow-y-auto">
+    <div className="flex flex-col min-h-screen mb-12 my-auto">
+    <Navbar />
+    <div className="flex-grow overflow-y-auto">
       {loading && address ? (
         <Loader loadingText={"Downloading..."} />
       ) : (
@@ -149,7 +152,11 @@ export default function Marketplace() {
           </div>
         </div>
       )}
+    </div>
+    <div className="mt-auto">
+      <InfoSection />
       <Footer />
+    </div>
     </div>
   );
 }
