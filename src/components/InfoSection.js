@@ -14,7 +14,7 @@ function InfoSection (data) {
           <div className="flex flex-col items-center rounded-md">
               <img className="rounded-md w-2/5 justify-center"  src="/images/icono4.png" alt="Icono" />
               {/* <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Indica el precio de venta</h3> */}
-              <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Marca precio de venta</h3>
+              <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">Marca precio d venta</h3>
             </div>
           <div className="flex flex-col items-center rounded-md">
           <img className="rounded-md w-2/5 justify-center"  src="/images/icono5.png" alt="Icono" />

@@ -141,7 +141,7 @@ export default function Marketplace() {
             {!address && (
               <>
                 <div className="flex flex-col justify-center items-center mt-8">
-                  <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>
+                  <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see the NFTs{address}</h2>
                   <div>
                     <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
                       {isConnected ? "Connected" : "Connect"}</button>
