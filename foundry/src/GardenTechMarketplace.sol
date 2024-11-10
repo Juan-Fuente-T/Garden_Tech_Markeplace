@@ -2,15 +2,15 @@
 pragma solidity ^0.8.20;
 
 //Console functions to help debug the smart contract just like in Javascript
-//import "hardhat/console.sol";
-import "../lib/forge-std/src/Test.sol";
+// import "hardhat/console.sol";
+import "forge-std/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
-import "../../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../../node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {UUPSUpgradeable} from "../../node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {Initializable} from "../../node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol";
-//import {IERC721} from "../../node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol";
-//import "../../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+// import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+// import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 
     ////////////////////////////////////////////////////////////////
@@ -26,8 +26,6 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     ////////////////////////////////////////////////////////////////
     ///                       Variables                          ///
     ////////////////////////////////////////////////////////////////
-
-
     /**
      * @dev Structure to store information about a listed token.
      */
@@ -43,7 +41,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     //Keeps track of the number of items sold on the marketplace
     uint128 private _itemsSold;
     //owner is the contract address that created the smart contract
-    address payable owner;
+    address payable public owner;
     //The fee charged by the marketplace to be allowed to list an NFT
     uint256 listPrice = 0.01 ether;
     //The name of  the NFT Marketplace 
@@ -251,16 +249,15 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     * for tokens that are currently listed.
     * @return An array of ListedToken objects representing all NFTs currently listed for sale.
     */
-    function getAllNFTs() public view returns (ListedToken[] memory) {
+   function getAllNFTs() public view returns (ListedToken[] memory) {
         uint256 nftCount = _tokenIds;
         ListedToken[] memory tokens = new ListedToken[](nftCount);
         uint256 currentIndex = 0;
 
         //at the moment currentlyListed is true for all, if it becomes false in the future we will
         //filter out currentlyListed == false over here
-        for (uint256 i; i < nftCount;) {
-            uint256 currentId = i++;
-            ListedToken storage currentItem = idToListedToken[currentId];
+        for (uint256 i = 1; i <= nftCount;) {
+            ListedToken storage currentItem = idToListedToken[i];
             tokens[currentIndex] = currentItem;
             currentIndex ++;
             unchecked{i++;}
@@ -281,29 +278,27 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         uint256 currentIndex = 0;
 
         //Important to get a count of all the NFTs that belong to the user before we can make an array for them
-        for (uint256 i; i < totalItemCount;) {
+        for (uint256 i = 1; i <= totalItemCount;) {
             if (
-                idToListedToken[i++].owner == msg.sender ||
-                idToListedToken[i++].seller == msg.sender
+                idToListedToken[i].owner == msg.sender ||
+                idToListedToken[i].seller == msg.sender
             ) {
                 itemCount ++;
-                unchecked { i++; }
             }
+                unchecked { i++; }
         }
 
         //Once you have the count of relevant NFTs, create an array then store all the NFTs in it
         ListedToken[] memory items = new ListedToken[](itemCount);
-        for (uint256 i; i < totalItemCount;) {
+        for (uint256 i = 1; i <= totalItemCount;) {
             if (
-                idToListedToken[i++].owner == msg.sender ||
-                idToListedToken[i++].seller == msg.sender
+                idToListedToken[i].owner == msg.sender ||
+                idToListedToken[i].seller == msg.sender
             ) {
-                uint256 currentId = i++;
-                ListedToken storage currentItem = idToListedToken[currentId];
-                items[currentIndex] = currentItem;
+                items[currentIndex] = idToListedToken[i];
                 currentIndex ++;
-                unchecked { i++; }
             }
+                unchecked { i++; }
         }
         return items;
     }

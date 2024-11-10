@@ -1,11 +1,32 @@
 # Ignora archivos y carpetas que coincidan con lo que se indica a continuación.
 
-# Carpetas y archivos
-/node_modules
+# Node modules
+node_modules/
 
+# Build outputs
+/build/
+/dist/
+/out/
 
-# Variables secretas .env 
+# Foundry specific
+/cache/
+/artifacts/
+/lib/
+foundry/broadcast/
+
+# Environment variables
 .env
+
+# Logs
+*.log
+
+# Editor directories and files
+.idea/
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
 
 #importaciones
 @openzeppelin

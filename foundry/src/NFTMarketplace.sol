@@ -3,38 +3,28 @@ pragma solidity ^0.8.19;
 
 //Console functions to help debug the smart contract just like in Javascript
 //import "hardhat/console.sol";s
-import "../lib/forge-std/src/Test.sol";
+// import "forge-std/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
-import "../node_modules/@openzeppelin/contracts/utils/Counters.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Initializable} from "../node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {UUPSUpgradeable} from "../node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {ERC721URIStorage} from  "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {ERC721} from  "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 ////////////////////////////////////////////////////////////
 ///                Marketplace Garden Tech               ///
 ////////////////////////////////////////////////////////////
-
 /**
  * @title NFTMarketplace
  * @dev A marketplace for creating, listing, and selling NFTs.
  * This contract extends ERC721URIStorage, allowing for the creation and management of NFTs.
  */
-contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
+contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable{
     ////////////////////////////////////////////////////////////////
     ///                         Variables                        ///
     ////////////////////////////////////////////////////////////////
-    using Counters for Counters.Counter;
-    //_tokenIds variable has the most recent minted tokenId
-    Counters.Counter private _tokenIds;
-    //Keeps track of the number of items sold on the marketplace
-    Counters.Counter private _itemsSold;
-    //owner is the contract address that created the smart contract
-    address payable owner;
-    //The fee charged by the marketplace to be allowed to list an NFT
-    uint256 listPrice = 0.01 ether;
-
-    //The structure to store info about a listed token
+    /**
+     * @dev Structure to store information about a listed token.
+     */
     struct ListedToken {
         uint256 tokenId;
         uint256 price;
@@ -42,6 +32,18 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
         address payable seller;
         bool currentlyListed;
     }
+
+    //_tokenIds variable has the most recent minted tokenId
+    uint128 private _tokenIds;
+    //Keeps track of the number of items sold on the marketplace
+    uint128 private _itemsSold;
+    //owner is the contract address that created the smart contract
+    address payable public owner;
+    //The fee charged by the marketplace to be allowed to list an NFT
+    uint256 listPrice = 0.01 ether;
+    //the name of the marketplace
+    string public marketplaceName;
+
     //This mapping maps tokenId to token info and is helpful when retrieving details about a tokenId
     mapping(uint256 => ListedToken) private idToListedToken;
 
@@ -50,7 +52,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
     ////////////////////////////////////////////////////////////////
 
     /**
-     * @dev Structure to store information about a listed token.
+     * @dev The event emitted when a token is successfully listed
      */
     event TokenListedSuccess(
         uint256 indexed tokenId,
@@ -69,11 +71,23 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
     error NotOwner();
 
     ////////////////////////////////////////////////////////////////
+    ///                         Modofiers                          ///
+    ////////////////////////////////////////////////////////////////
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) {
+            revert NotOwner();
+        }
+        _;
+    }
+
+    ////////////////////////////////////////////////////////////////
     ///                        Constructor                       ///
     ////////////////////////////////////////////////////////////////
 
     constructor() ERC721("NFTMarketplace", "NFTM") {
         owner = payable(msg.sender);
+        marketplaceName = "NFTMarketplace";
     }
 
     ////////////////////////////////////////////////////////////////
@@ -86,9 +100,13 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
      * @notice that is the owner of the proxy, not this implementation
      */
     function initialize(string memory _marketplaceName) external initializer {
-        owner = msg.sender;
         marketplaceName = _marketplaceName;
+        owner = payable(msg.sender);
     }
+    // function initialize(string memory _marketplaceName) external initializer {
+    //     owner = payable(msg.sender);
+    //     marketplaceName = _marketplaceName;
+    // }
 
     /**
      * @dev Internal function to authorize the upgrade of the implementation contract.
@@ -101,6 +119,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
     ) internal override onlyOwner {
         // Posible lógica de autorización para la actualización de la implementación
     }
+
     ////////////////////////////////////////////////////////////////
     ///                     Token Function                      ///
     ////////////////////////////////////////////////////////////////
@@ -117,11 +136,10 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
         uint256 price
     ) public payable returns (uint256) {
         //Increment the tokenId counter, which is keeping track of the number of minted NFTs
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
 
         //Mint the NFT with tokenId newTokenId to the address who called createToken
-        console.log("Sender", msg.sender);
         _safeMint(msg.sender, newTokenId);
 
         //Map the tokenId to the tokenURI (which is an IPFS URL with the NFT metadata)
@@ -166,7 +184,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
         view
         returns (ListedToken memory)
     {
-        uint256 currentTokenId = _tokenIds.current();
+        uint256 currentTokenId = _tokenIds;
         return idToListedToken[currentTokenId];
     }
 
@@ -185,7 +203,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
      * @return The current token ID.
      */
     function getCurrentToken() public view returns (uint256) {
-        return _tokenIds.current();
+        return _tokenIds;
     }
 
     /**
@@ -230,7 +248,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
      * @return An array of ListedToken objects representing all NFTs currently listed for sale.
      */
     function getAllNFTs() public view returns (ListedToken[] memory) {
-        uint256 nftCount = _tokenIds.current();
+        uint256 nftCount = _tokenIds;
         ListedToken[] memory tokens = new ListedToken[](nftCount);
         uint256 currentIndex = 0;
 
@@ -238,7 +256,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
         //filter out currentlyListed == false over here
         for (uint256 i; i < nftCount; ) {
             uint256 currentId = i++;
-            ListedToken storage currentItem = idToListedToken[currenId];
+            ListedToken storage currentItem = idToListedToken[currentId];
             tokens[currentIndex] = currentItem;
             currentIndex++;
             unchecked {
@@ -256,7 +274,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
      * @return An array of ListedToken objects representing all NFTs owned or sold by the current user.
      */
     function getMyNFTs() public view returns (ListedToken[] memory) {
-        uint256 totalItemCount = _tokenIds.current();
+        uint256 totalItemCount = _tokenIds;
         uint256 itemCount = 0;
         uint256 currentIndex = 0;
 
@@ -310,7 +328,7 @@ contract NFTMarketplace is ERC721URIStorage, UUPSUpgradeable, Initializable {
         //update the details of the token
         idToListedToken[tokenId].currentlyListed = true;
         idToListedToken[tokenId].seller = payable(msg.sender);
-        _itemsSold.increment();
+        _itemsSold++;
 
         //Actually transfer the token to the new owner
         if (idToListedToken[tokenId].owner != address(this)) {

@@ -28,6 +28,7 @@ export default function Profile() {
 
     async function getNFTData(tokenId) {
         if (!contract) return;
+        console.log("contract", contract);
         try {
             let sumPrice = 0;
 
@@ -38,12 +39,17 @@ export default function Profile() {
             * and creates an object of information that is to be displayed
             */
 
+           console.log("transaction", transaction);
             const items = await Promise.all(transaction.map(async i => {
                 const tokenURI = await contract.tokenURI(i.tokenId);
                 let meta = await axios.get(tokenURI);
                 meta = meta.data;
-
+                console.log("tokenURI", tokenURI);
+                console.log("meta", meta);
+                console.log("meta.data", meta.data);
+                
                 let price = ethers.utils.formatUnits(i.price.toString(), 'ether');
+                console.log("price", price);
                 let item = {
                     price,
                     tokenId: i.tokenId.toNumber(),
@@ -53,10 +59,10 @@ export default function Profile() {
                     name: meta.name,
                     description: meta.description,
                 }
+                console.log("item", item);
                 sumPrice += Number(price);
                 return item;
             }))
-
             updateData(items);
             updateFetched(true);
             setLoading(false);

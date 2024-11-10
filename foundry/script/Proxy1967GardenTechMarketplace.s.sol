@@ -18,9 +18,10 @@ contract MyScript is Script {
         GardenTechMarketplace gardenTechMarketplace = new GardenTechMarketplace();
         Proxy1967GardenTechMarketplace proxy = new Proxy1967GardenTechMarketplace(
             address(gardenTechMarketplace),
-            abi.encodeWithSignature("initialize()")
+            abi.encodeWithSignature("initialize(string)", "GardenTechMarketplace")
         );
-        console.log("proxy address: ", address(proxy));
+        console2.log("implementation address: ", address(gardenTechMarketplace));
+        console2.log("proxy address: ", address(proxy));
         vm.stopBroadcast();
     }
 }
