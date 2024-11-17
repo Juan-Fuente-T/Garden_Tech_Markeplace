@@ -30,6 +30,7 @@ export default function NFTPage(props) {
                 tokenURI = GetIpfsUrlFromPinata(tokenURI);
                 let meta = await axios.get(tokenURI);
                 meta = meta.data;
+                console.log("address owner y seller", listedToken.owner, listedToken.seller);
 
                 let item = {
                     price: meta.price,
@@ -133,28 +134,44 @@ export default function NFTPage(props) {
                     </div>
                 </>
             ) : data ? (
-                <div className="flex flex-col items-center m-5 mt-20 mb-80" >
-                    <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg mt-20">Buy this NFT</p>
+                <div className="flex flex-col items-center m-5 mt-12 mb-80" >
+                    <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2x lg:px-12 text-gray-100 bg-gray-800 rounded-lg mt-20 mb-8">Buy this NFT</p>
                     {/* <img src={data?.image} alt="" className="w-2/5" /> */}
-                    <img src={data?.image} alt="" className="w-4/5 md:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg mt-8" />
-                    {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
-                    <div className="flex flex-col text-sm lg:text-2xl text-gray-100 w-full md:w-2/3 break-word m-2 mt-4 lg:m-5 mb-24 p-4 lg:p-12 max-w-4xl   bg-gray-900 bg-opacity-70 space-y-8 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
-                        <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
-                            Name: {data?.name}
-                        </div>
-                        <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
-                            Description: {data?.description}
-                        </div>
-                        <div className="bg-gray-800 py-1 px-4 w-fit rounded-md">
-                            Price: <span className="">{data?.price + " ETH"}</span>
-                        </div>
-                        <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
-                            Owner: <span className="whitespace-nowrap">{data?.owner.toLowerCase() === "0xb5058c943d65f9cb49278ea9edc79b7cef748ffb" ? "Garden Tech NFT" : data?.owner}</span>
-                        </div>
-                        <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
-                            Seller: <span className="whitespace-nowrap">{data?.seller.toLowerCase() === address.toLowerCase() ? "You" : data?.seller}</span>
-                        </div>
-                        <div>
+                    <div className="flex flex-col xl:flex-row justify-center items-center">
+                        <img src={data?.image} alt="" className="w-5/6 md:w-3/5 xl:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg m-4 lg:m-4 mt-8" />
+                        {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
+                        <div className="flex flex-col text-xs lg:text-2xl text-gray-100 w-fit md:w-2/3 lg:w-fit max-w-4xl break-all m-4 lg:m-4 mt-4 mb-24 p-4 lg:p-12 bg-gray-900 bg-opacity-70 space-y-4 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
+                            <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                                Name: {data?.name}
+                            </div>
+                            <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                                Description: {data?.description}
+                            </div>
+                            <div className="bg-gray-800 py-1 px-4 w-fit rounded-md">
+                                Price: <span className="">{data?.price + " ETH"}</span>
+                            </div>
+                            {/* <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                                Owner: <span className="whitespace-nowrap">{data?.owner.toLowerCase() === "0xb5058c943d65f9cb49278ea9edc79b7cef748ffb" ? "Garden Tech NFT" : data?.owner}</span>
+                            </div> */}
+                            <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
+                                Seller: <span className="whitespace-nowrap">{data?.seller.toLowerCase() === address.toLowerCase() ? "You" : data?.seller}</span>
+                            </div>
+                            <div className="flex flex-col xl:flex-row gap-2 text-xs lg:text-xl">
+                                <div className="bg-gray-700 py-1 px-4 rounded-md flex items-center">
+                                    <span className="mr-2 whitespace-nowrap">To import:</span>
+                                    <span className="bg-gray-800 px-2 py-1 rounded whitespace-nowrap">
+                                        {data?.owner ? data?.owner : ""}
+                                    </span>
+                                </div>
+                                <div className="w-fit bg-gray-700 py-1 px-4 rounded-md flex items-center">
+                                    <span className="mr-2 whitespace-nowrap">Id:</span>
+                                    <span className="bg-gray-800 px-2 py-1 rounded whitespace-nowrap">
+                                        {data?.tokenId ? data.tokenId : ""}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                            </div>
                             {/* {address !== data.owner && address !== data?.seller?
                         <button className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" onClick={() => buyNFT(tokenId)}>Buy this NFT</button>
                         : <div className="text-emerald-700">You are the owner of this NFT</div>
@@ -178,7 +195,6 @@ export default function NFTPage(props) {
                     <h2 className="font-bold text-3xl p-4 mb-6 text-white bg-gray-800">No data available</h2>
                 </div>
             )}
-            <InfoSection/>
             <Footer />
         </div >
     )

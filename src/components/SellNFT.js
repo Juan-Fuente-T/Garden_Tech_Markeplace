@@ -122,7 +122,7 @@ export default function SellNFT() {
     return (
         // <div className="min-h-screen w-full mt-36"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
         // <div className="h-auto w-full mt-36 mb-60 overflow-y-auto"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
-        <div className="flex flex-col h-screen w-full overflow-y-auto"> 
+        <div className="flex flex-col h-auto max-h-screen w-full overflow-y-auto"> 
             <Navbar />
             {isMinting ? Loader("Minting your NFT") : null}
             {!isConnected ? (
@@ -163,7 +163,6 @@ export default function SellNFT() {
                     </form>
                 </div>
             )}
-            <InfoSection/>
             <Footer />
         </div>
     );

@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 //Console functions to help debug the smart contract just like in Javascript
 // import "hardhat/console.sol";
-// import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
@@ -72,19 +72,17 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     error InsufficientPrice();
     error IsNotListPrice();
     error NotOwner();
-    error ThisAddressCantBuy();
-    error InsufficientValue();
 
     ////////////////////////////////////////////////////////////////
     ///                       Constructor                        ///
     ////////////////////////////////////////////////////////////////
 
-    constructor() ERC721("GardenTechMarketplace", "GTM") {
+    constructor() ERC721("NFTMarketplace", "NFTM") {
         owner = payable(msg.sender);
     }
 
     ////////////////////////////////////////////////////////////////
-    ///                        Modifiers                         ///
+    ///                Functions for Implementation              ///
     ////////////////////////////////////////////////////////////////
 
     /**
@@ -98,10 +96,6 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         );
         _;
     }
-
-    ////////////////////////////////////////////////////////////////
-    ///                Functions for Implementation              ///
-    ////////////////////////////////////////////////////////////////
     /**
      * @dev Function to initialize the proxy.
      * @param _marketplaceName The Name of the marketplace
@@ -249,48 +243,29 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     }
 
 
-   /**
-    * @notice Returns a paginated list of NFTs currently listed for sale on the marketplace.
-    * @dev This function iterates over all token IDs and returns a subset of ListedToken objects
-    * for tokens that are currently listed, based on the start index and limit provided.
-    * @param start The starting index for pagination (0-based).
-    * @param limit The maximum number of NFTs to return.
-    * @return An array of ListedToken objects representing a subset of NFTs currently listed for sale.
+    /**
+    * @notice Returns all the NFTs currently listed for sale on the marketplace.
+    * @dev This function iterates over all token IDs and returns an array of ListedToken objects
+    * for tokens that are currently listed.
+    * @return An array of ListedToken objects representing all NFTs currently listed for sale.
     */
-    function getAllNFTs(uint256 start, uint256 limit) public view returns (ListedToken[] memory) {
-        require(start >= 0 && limit > 0, "Invalid start or limit");
+   function getAllNFTs() public view returns (ListedToken[] memory) {
         uint256 nftCount = _tokenIds;
-        uint256 listedCount = 0;
-        
-        // Primero, contamos cuántos NFTs listados hay en total
-        for (uint256 i = 1; i <= nftCount; i++) {
-            if (idToListedToken[i].currentlyListed) {
-                listedCount++;
-            }
+        ListedToken[] memory tokens = new ListedToken[](nftCount);
+        uint256 currentIndex = 0;
+
+        //at the moment currentlyListed is true for all, if it becomes false in the future we will
+        //filter out currentlyListed == false over here
+        for (uint256 i = 1; i <= nftCount;) {
+            ListedToken storage currentItem = idToListedToken[i];
+            tokens[currentIndex] = currentItem;
+            currentIndex ++;
+            unchecked{i++;}
         }
-        
-        // Calculamos cuántos NFTs vamos a devolver
-        uint256 returnedCount = 0;
-        if (start < listedCount) {
-            returnedCount = (listedCount - start < limit) ? listedCount - start : limit;
-        }
-        
-        ListedToken[] memory tokens = new ListedToken[](returnedCount);
-        uint256 index = 0;
-        uint256 currentListedCount = 0;
-        
-        for (uint256 i = 1; i <= nftCount && index < returnedCount; i++) {
-            if (idToListedToken[i].currentlyListed) {
-                if (currentListedCount >= start) {
-                    tokens[index] = idToListedToken[i];
-                    index++;
-                }
-                currentListedCount++;
-            }
-        }
-        
+        //the array 'tokens' has the list of all NFTs in the marketplace
         return tokens;
     }
+
     /**
     * @notice Returns all the NFTs that the current user is the owner or seller of.
     * @dev This function filters the NFTs listed on the marketplace to return only those
@@ -333,44 +308,36 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     ////////////////////////////////////////////////////////////////
 
     /**
-    * @notice Executes the sale of an NFT listed on the marketplace and optionally relists it.
+    * @notice Executes the sale of an NFT listed on the marketplace.
     * @dev This function handles the purchase of an NFT by transferring ownership and funds.
     * It requires the correct amount of Ether to be sent with the transaction to match the listing price.
-    * If 'sell' is true, it also handles relisting the NFT and charges an additional listing fee.
     * @param tokenId The ID of the NFT to be sold.
-    * @param sell A boolean indicating whether the NFT should be relisted after purchase.
     */
-    function executeSale(uint256 tokenId, bool sell) public payable {
-        if(msg.sender == address(this) || msg.sender == address(0)){
-            revert ThisAddressCantBuy();
-        }
+    function executeSale(uint256 tokenId) public payable {
         uint256 price = idToListedToken[tokenId].price;
-        
-
+        address seller = idToListedToken[tokenId].seller;
+        if(msg.value != price){
+            revert InsufficientPrice();
+        }
+       
+        //update the details of the token
+        idToListedToken[tokenId].currentlyListed = true;
         idToListedToken[tokenId].seller = payable(msg.sender);
         _itemsSold++;
 
-        _transfer(idToListedToken[tokenId].owner, msg.sender, tokenId);
-
-        idToListedToken[tokenId].owner = payable(msg.sender);
-        //If the option of sell the nft is true the user can sell the nft in the marketplace
-        if(sell){
-            if(msg.value < price + listPrice){
-                revert InsufficientValue();
-            }
-            idToListedToken[tokenId].currentlyListed = true;
-            //approve the marketplace to sell NFTs on your behalf
-            approve(address(this), tokenId);
+        //Actually transfer the token to the new owner
+        if(idToListedToken[tokenId].owner != address(this)){
+            _transfer(idToListedToken[tokenId].seller, msg.sender, tokenId);
         }else {
-            if(msg.value < price){
-            revert InsufficientPrice();
+            _transfer(address(this), msg.sender, tokenId); 
         }
-            idToListedToken[tokenId].currentlyListed = false;
-        }
+        //approve the marketplace to sell NFTs on your behalf
+        approve(address(this), tokenId);
+
         //Transfer the listing fee to the marketplace creator
         payable(owner).transfer(listPrice);
         //Transfer the proceeds from the sale to the seller of the NFT
-        payable(idToListedToken[tokenId].seller).transfer(idToListedToken[tokenId].price);
+        payable(seller).transfer(msg.value);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -395,7 +362,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         address /*from*/,
         uint256 /*tokenId*/,
         bytes calldata /*data*/
-    ) external pure override returns (bytes4) {
+    ) external override returns (bytes4) {
         //Return the value indicating that this contract accepts the NFT.
         return this.onERC721Received.selector;
     }
