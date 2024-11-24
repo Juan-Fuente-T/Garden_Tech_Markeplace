@@ -3,9 +3,13 @@ pragma solidity ^0.8.19;
 
 //Console functions to help debug the smart contract just like in Javascript
 // import "hardhat/console.sol";
-// import "forge-std/Test.sol";
+
+import "forge-std/Test.sol";
+
+import {Test, console, console2} from "forge-std/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
@@ -37,18 +41,18 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         bool currentlyListed;
     }
     //_tokenIds variable has the most recent minted tokenId
-    uint128 private _tokenIds;
+    uint256 public _tokenIds;
     //Keeps track of the number of items sold on the marketplace
-    uint128 private _itemsSold;
+    uint256 private _itemsSold;
+    //The fee charged by the marketplace to be allowed to list an NFT
+    uint256 listPrice;
     //owner is the contract address that created the smart contract
     address payable public owner;
-    //The fee charged by the marketplace to be allowed to list an NFT
-    uint256 listPrice = 0.01 ether;
     //The name of  the NFT Marketplace 
     string public marketplaceName; 
 
     //This mapping maps tokenId to token info and is helpful when retrieving details about a tokenId
-    mapping(uint256 => ListedToken) private idToListedToken;
+    mapping(uint256 => ListedToken) public idToListedToken;
 
     ////////////////////////////////////////////////////////////////
     ///                        Events                            ///
@@ -63,6 +67,11 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         uint256 price,
         bool currentlyListed
     );
+    //the event emitted when the price of a token is changed
+    event ChangeNFTPrice(
+        uint256 tokenId,
+        uint256 price     
+    );
 
     ////////////////////////////////////////////////////////////////
     ///                          Errors                          ///
@@ -74,13 +83,14 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     error NotOwner();
     error ThisAddressCantBuy();
     error InsufficientValue();
+    error NotListed();
 
     ////////////////////////////////////////////////////////////////
     ///                       Constructor                        ///
     ////////////////////////////////////////////////////////////////
 
     constructor() ERC721("GardenTechMarketplace", "GTM") {
-        owner = payable(msg.sender);
+        // owner = payable(msg.sender); Realmente no se usa en el constructor
     }
 
     ////////////////////////////////////////////////////////////////
@@ -111,6 +121,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     function initialize(string memory _marketplaceName) external initializer {
         owner = payable(msg.sender);
         marketplaceName = _marketplaceName;
+        listPrice = 0.01 ether;
     }
 
     /**
@@ -125,37 +136,6 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         // Posible lógica de autorización para la actualización de la implementación
     }
 
-
-    ////////////////////////////////////////////////////////////////
-    ///                      Token Funtion                       ///
-    ////////////////////////////////////////////////////////////////
-
-    /**
-     * @notice Creates a new token and lists it for sale.
-     * @dev Mints a new NFT and maps it to a tokenURI.
-     * @param tokenURI The URI of the NFT metadata.
-     * @param price The price to list the NFT at.
-     * @return The new tokenId.
-     */
-    function createToken(
-        string memory tokenURI,
-        uint256 price
-    ) public payable returns (uint256) {
-        //Increment the tokenId counter, which is keeping track of the number of minted NFTs
-        _tokenIds++;
-        uint256 newTokenId = _tokenIds;
-
-        //Mint the NFT with tokenId newTokenId to the address who called createToken
-        _safeMint(msg.sender, newTokenId);
-
-        //Map the tokenId to the tokenURI (which is an IPFS URL with the NFT metadata)
-        _setTokenURI(newTokenId, tokenURI);
-
-        //Helper function to update Global variables and emit an event
-        createListedToken(newTokenId, price);
-
-        return newTokenId;
-    }
 
     ////////////////////////////////////////////////////////////////
     ///                    Helper Funtions                       ///
@@ -214,10 +194,14 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     }
 
     /**
-     * @dev Helper function to create a listed token.
-     * @param tokenId The ID of the token to list.
-     * @param price The price to list the token at.
-     */
+    * @notice Creates a listing for an NFT token with a specified price.
+    * @dev This function requires the sender to send the exact listing price in ETH and ensures the price is greater than zero.
+    * It updates the mapping of token IDs to their listing details and transfers the token to the contract.
+    * Emits a {TokenListedSuccess} event upon successful listing.
+    * @param tokenId The ID of the token to be listed.
+    * @param price The price at which the token is to be listed.
+    * @custom:reverts If the sent ETH is not equal to the listing price or if the price is zero.
+    */
     function createListedToken(uint256 tokenId, uint256 price) private {
         //Make sure the sender sent enough ETH to pay for listing
         if (msg.value != listPrice){
@@ -248,6 +232,42 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         );
     }
 
+    /**
+    * @notice Changes the price of an already listed NFT token.
+    * @dev This function checks if the token is listed and if the sender is the owner of the token.
+    * It ensures the new price is greater than zero and updates the token's price.
+    * Emits a {ChangeNFTPrice} event upon successful price change.
+    * @param tokenId The ID of the token whose price is to be changed.
+    * @param newPrice The new price to set for the token.
+    * @return The updated price of the token.
+    * @custom:reverts If the token is not listed, the sender is not the owner, or the new price is zero.
+    */
+    function changeNFTPrice(uint256 tokenId, uint256 newPrice) public payable returns (uint256){
+        //Check if the token is listed
+        if (!idToListedToken[tokenId].currentlyListed) {
+            revert NotListed();
+        }
+
+        //Check if the sender is the owner of the NFT
+        if (msg.sender != idToListedToken[tokenId].owner) {
+            revert NotOwner();
+        }
+
+        //Check if the price is greater than 0
+        if (newPrice == 0) {
+            revert InsufficientPrice();
+        }
+
+        //Update the price of the NFT
+        idToListedToken[tokenId].price = newPrice;
+
+        //Emit the event for successful transfer. The frontend parses this message and updates the end user
+        emit ChangeNFTPrice(
+            tokenId,
+            newPrice    
+        );
+        return newPrice;
+    } 
 
    /**
     * @notice Returns a paginated list of NFTs currently listed for sale on the marketplace.
@@ -263,18 +283,19 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         uint256 listedCount = 0;
         
         // Primero, contamos cuántos NFTs listados hay en total
-        for (uint256 i = 1; i <= nftCount; i++) {
+        for (uint256 i = 0; i <= nftCount; i++) {
             if (idToListedToken[i].currentlyListed) {
                 listedCount++;
+                console2.log("Listed Token ID:", i);
             }
         }
-        
         // Calculamos cuántos NFTs vamos a devolver
         uint256 returnedCount = 0;
         if (start < listedCount) {
             returnedCount = (listedCount - start < limit) ? listedCount - start : limit;
         }
         
+        console2.log("Returned count:", returnedCount);
         ListedToken[] memory tokens = new ListedToken[](returnedCount);
         uint256 index = 0;
         uint256 currentListedCount = 0;
@@ -283,6 +304,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
             if (idToListedToken[i].currentlyListed) {
                 if (currentListedCount >= start) {
                     tokens[index] = idToListedToken[i];
+                    console2.log("Token added to return array, index:", index);
                     index++;
                 }
                 currentListedCount++;
@@ -291,6 +313,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         
         return tokens;
     }
+
     /**
     * @notice Returns all the NFTs that the current user is the owner or seller of.
     * @dev This function filters the NFTs listed on the marketplace to return only those
@@ -326,6 +349,37 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
                 unchecked { i++; }
         }
         return items;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    ///                      Token Funtion                       ///
+    ////////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Creates a new token and lists it for sale.
+     * @dev Mints a new NFT and maps it to a tokenURI.
+     * @param tokenURI The URI of the NFT metadata.
+     * @param price The price to list the NFT at.
+     * @return The new tokenId.
+     */
+    function createToken(
+        string memory tokenURI,
+        uint256 price
+    ) public payable returns (uint256) {
+        //Increment the tokenId counter, which is keeping track of the number of minted NFTs
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
+
+        //Mint the NFT with tokenId newTokenId to the address who called createToken
+        _safeMint(msg.sender, newTokenId);
+
+        //Map the tokenId to the tokenURI (which is an IPFS URL with the NFT metadata)
+        _setTokenURI(newTokenId, tokenURI);
+
+        //Helper function to update Global variables and emit an event
+        createListedToken(newTokenId, price);
+
+        return newTokenId;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -367,8 +421,13 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         }
             idToListedToken[tokenId].currentlyListed = false;
         }
+
         //Transfer the listing fee to the marketplace creator
-        payable(owner).transfer(listPrice);
+        // payable(owner).transfer(listPrice);
+        (bool success, ) = payable(idToListedToken[tokenId].seller).call{value: listPrice}("");
+        require(success, "Transfer to seller failed");
+        // (bool success, ) = payable(idToListedToken[tokenId].seller).call{value: idToListedToken[tokenId].price}("");
+        // require(success, "Transfer to seller failed");
         //Transfer the proceeds from the sale to the seller of the NFT
         payable(idToListedToken[tokenId].seller).transfer(idToListedToken[tokenId].price);
     }

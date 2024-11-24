@@ -63,7 +63,7 @@ export default function SellNFT() {
         }
 
         const nftJSON = {
-            name, description, price, image: fileURL
+            name, description, image: fileURL
         }
 
         try {
@@ -122,12 +122,16 @@ export default function SellNFT() {
     return (
         // <div className="min-h-screen w-full mt-36"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
         // <div className="h-auto w-full mt-36 mb-60 overflow-y-auto"> {/* Asegura que ocupa toda la altura y ancho de la pantalla */}
-        <div className="flex flex-col h-auto max-h-screen w-full overflow-y-auto"> 
+        // <div className="flex flex-col h-auto max-h-screen w-full overflow-y-auto" style={{ height: '500px' }}> 
+        <div className="flex flex-col min-h-screen w-full"> 
             <Navbar />
-            {isMinting ? Loader("Minting your NFT") : null}
-            {!isConnected ? (
+            <div className="flex-grow flex flex-col overflow-y-auto"> {/* CAMBIO: Añadido padding vertical */}
+      <div className="flex-grow flex flex-col justify-center items-center w-full px-4 py-8">
+      {isMinting ? Loader("Minting your NFT") : null}
+      {!isConnected ? (
                 <>
-                    <div className="flex flex-col justify-center items-center my-auto border-2">
+                    {/* <div className="flex flex-col flex-grow justify-center items-center my-auto"> */}
+                    <div className="flex flex-col justify-center items-center h-full">
                         <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to mint your NFTs{address}</h2>
                         <div>
                             <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
@@ -136,9 +140,10 @@ export default function SellNFT() {
                     </div>
                 </>
             ) : (
-                <div className="flex flex-col justify-center items-center w-full-2 z-40 mt-24 lg:mt-28 mx-2 overflow-y-auto overflow-x-hidden" >
+                // <div className="flex flex-col flex-grow justify-center items-center w-full-2 z-40 mx-2 overflow-y-auto overflow-x-hidden" >
+                <div className="flex flex-col items-center w-full max-w-[calc(100%-1rem)] mx-auto  mb-32 mt-20" >
                     <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg mb-8">Mint your new NFT</p>
-                    <form className="text-xl text-gray-100 break-word my-auto mx-5 md:mx-8 bg-gray-900 bg-opacity-70 space-y-4 shadow-2xl rounded-lg border-2 border-gray-900 p-4 lg:p-12 w-full md:w-4/5 lg:w-3/5 max-w-none">
+                    <form className="text-xl text-gray-100 break-word mx-5 md:mx-8 bg-gray-900 bg-opacity-70 space-y-4 shadow-2xl rounded-lg border-2 border-gray-900 p-4 lg:p-12 w-full md:w-4/5 lg:w-3/5 max-w-none mb-8">
                         <h3 className="text-center font-bold text-gray-100 mb-8">Upload your NFT to the APP</h3>
                         <div className="mb-4">
                             <label className="block text-gray-100  text-sm font-bold mb-2" htmlFor="name">NFT Name</label>
@@ -163,6 +168,8 @@ export default function SellNFT() {
                     </form>
                 </div>
             )}
+            </div>
+            </div>
             <Footer />
         </div>
     );

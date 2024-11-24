@@ -33,7 +33,7 @@ function InfoSection(data) {
         <div className="flex flex-col items-center rounded-md">
           <img className="rounded-md w-2/5 md:w-1/5 justify-center" src="/images/icono2.png" alt="Icono" />
           <h3 className="py-1 px-1 mt-2 lg:px-2 lg:mt-4 bg-sky-900 rounded-md flex items-center justify-center min-w-22 h-18">
-            Compra o vende tu NFT
+            Retira o vende tu NFT
           </h3>
         </div>
       </div>

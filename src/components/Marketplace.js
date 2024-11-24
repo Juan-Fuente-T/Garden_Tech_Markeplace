@@ -115,48 +115,45 @@ export default function Marketplace() {
   }, [contract]);
 
 
+
   return (
-    // <div className="min-h-screen w-full mb-12 overflow-y-auto">
-    <div className="flex flex-col min-h-screen mb-52 my-auto">
-    <Navbar />
-    <div className="flex-grow overflow-y-auto">
-      {loading && address ? (
-        <Loader loadingText={"Downloading..."} />
-      ) : (
-        <div className=" flex flex-col place-items-center mt-32 my-auto overflow-y-auto text-center">
-          <div className="flex flex-col items-center md:text-xl  font-bold text-white">
-            <h1 className="text-2xl lg:text-5xl py-2 px-4 lg:py-4 lg:px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
-            <p className="text-lg lg:text-3xl py-1 px-4 lg:py-3 lg:px-10 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
-            <p className="text-md lg:text-3xl py-2 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
-          </div>
-          <div className="grid gap-x-4 mt-2 justify-between flex-wrap flex-grow sm:max-w-full md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl text-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {data.map((data, index) => {
-              return <NFTTile data={data} key={index}></NFTTile>;
-            })}
-          </div >
-          <div className="flex mt-1 text-center text-gray-900 mb-4" >
-            {address && (
-              <p className="font-bold text-lg lg:text-xl py-1 px-4 mb-6 mx-4 text-gray-100 bg-gray-800 rounded-md">Wallet Address: {(address.substring(0, 15) + '...')}</p>
-            )}
-            {!address && (
-              <>
+    <div className="flex flex-col min-h-screen"> {/* CAMBIO: h-screen a min-h-screen */}
+      <Navbar />
+      <div className="flex-grow flex items-center justify-center mb-8 pt-24 pb-40"> {/* CAMBIO: Eliminado overflow-y-auto */}
+        {loading && address ? (
+          <Loader loadingText={"Downloading..."} />
+        ) : (
+          <div className="flex flex-col place-items-center w-full max-w-screen-2xl mx-auto px-4"> {/* CAMBIO: Ajustado contenedor principal */}
+            <div className="flex flex-col items-center md:text-xl font-bold text-white mb-8">
+              <h1 className="text-2xl lg:text-5xl py-2 px-4 lg:py-4 lg:px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
+              <p className="text-lg lg:text-3xl py-1 px-4 lg:py-3 lg:px-10 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
+              <p className="text-md lg:text-3xl py-2 px-4 lg:py-2 lg:px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
+            </div>
+            {/* CAMBIO: Reemplazado grid con flex */}
+            <div className="flex flex-wrap justify-center gap-8 mb-8">
+              {data.map((data, index) => (
+                <NFTTile data={data} key={index} />
+              ))}
+            </div>
+            <div className="text-center text-gray-900 mb-4">
+              {/* {address && (
+                <p className="font-bold text-lg lg:text-xl py-1 px-4 mb-6 mx-4 text-gray-100 bg-gray-800 rounded-md">Wallet Address: {(address.substring(0, 15) + '...')}</p>
+              )} */}
+              {!address && (
                 <div className="flex flex-col justify-center items-center mt-4">
                   <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see the NFTs{address}</h2>
-                  <div>
-                    <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
-                      {isConnected ? "Connected" : "Connect"}</button>
-                  </div>
+                  <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
+                    {isConnected ? "Connected" : "Connect"}
+                  </button>
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-    <div className="absolute bottom-0 w-full">
-      {/* <InfoSection /> */}
-      <Footer />
-    </div>
+        )}
+      </div>
+      <div className="mt-auto w-full">
+        <Footer />
+      </div>
     </div>
   );
 }

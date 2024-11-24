@@ -34,9 +34,10 @@ interface IGardenTechMarketplace {
     function getLatestIdToListedToken() external view returns (ListedToken memory);
     function getListedTokenForId(uint256 tokenId) external view returns (ListedToken memory);
     function getCurrentToken() external view returns (uint256);
+    function changeNFTPrice(uint256 tokenId, uint256 newPrice) external payable returns(uint256);
 
     // Funciones para obtener los NFTs listados
-    function getAllNFTs() external view returns (ListedToken[] memory);
+    function getAllNFTs(uint256 start, uint256 limit) external view returns (ListedToken[] memory);
     function getMyNFTs() external view returns (ListedToken[] memory);
 
     //Funcion para actualizar el precio de listado
@@ -46,7 +47,7 @@ interface IGardenTechMarketplace {
     function createToken(string memory tokenURI,uint256 price) external payable returns (uint256);
 
     // Función para ejecutar la venta de un NFT
-    function executeSale(uint256 tokenId) external payable;
+    function executeSale(uint256 tokenId, bool sell) external payable;
 
     // Función para recibir tokens ERC721
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external returns (bytes4);

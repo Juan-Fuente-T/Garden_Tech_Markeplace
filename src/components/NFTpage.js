@@ -129,7 +129,8 @@ export default function NFTPage(props) {
             <Navbar></Navbar>
             {!isConnected ? (
                 <>
-                    <div className="flex flex-col justify-center items-center h-screen">
+                    {/* <div className="flex flex-col justify-center items-center h-screen"> */}
+                    <div className="flex flex-col justify-center items-center">
                         <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>
                     </div>
                 </>
@@ -191,7 +192,7 @@ export default function NFTPage(props) {
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col justify-center items-center h-screen border-2 border-red-600">
+                <div className="flex flex-col justify-center items-center border-2 border-red-600">
                     <h2 className="font-bold text-3xl p-4 mb-6 text-white bg-gray-800">No data available</h2>
                 </div>
             )}

@@ -73,32 +73,32 @@ export default function Profile() {
         }
     }
 
-    if (!dataFetched)
-        getNFTData(tokenId);
-
+    if (!dataFetched) getNFTData(tokenId);
+    console.log("XX", isConnected, contract, dataFetched);
     return (
         // <div className="profileClass" style={{ "minHeight": "100vh" }}>
+        // <div className="flex flex-col min-h-screen">
+        // <div className="flex flex-col h-screen overflow-y-auto mb-36">
         <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="flex-grow overflow-y-auto ">
+            <div className="flex flex-grow items-center justify-center overflow-y-auto">
+            <div className="flex-grow flex flex-col items-center justify-center pb-32"> 
             {loading && address ? <Loader loadingText={"Downloading..."} /> : null}
                 {/* <div className="mb-80 text-xs mx-2 my-auto "> */}
                 {/* <div className="text-xs mx-2 my-auto"> */}
                 {!isConnected ? (
-                    <>
-                        <div className="flex flex-col justify-center items-center h-full">
+                        <div className="flex flex-col justify-center items-center">
                             <h2 className="font-bold text-lg lg:text-3xl py-1 px-4 lg:py-2 mb-6 text-gray-100  bg-gray-800 rounded-lg">Please log in to see your NFTs{address}</h2>
                             <div>
                                 <button onClick={() => handleConnection(true)} className="enableEthereumButton justify-center bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded text-sm mb-10">
                                     {isConnected ? "Connected" : "Connect"}</button>
                             </div>
                         </div>
-                    </>
                 ) : (
-                    <div className="p-4 pb-80"> {/* Añadido padding-bottom para dar espacio al InfoSection */}
-                        <div className="flex text-center flex-col items-center mt-10 md:text-2xl text-white">
-                            <div className="flex flex-row text-center justify-center mt-10 md:text-2xl">
-                                <h2 className="font-bold mt-16 py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">Your wallet address: {address}</h2>
+                    <div className="flex flex-col items-center w-full p-4 overflow-y-auto"> 
+                        <div className="flex text-center flex-col items-center mt-4 md:text-2xl text-white">
+                            <div className="flex flex-row text-center justify-center md:text-2xl">
+                                <h2 className="font-bold py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">Your wallet address: {address}</h2>
                             </div>
                         </div>
                         <div className="flex flex-col items-center lg:flex-row text-center justify-center mt-6 md:text-2xl">
@@ -110,7 +110,7 @@ export default function Profile() {
                             </div>
                         </div>
                         <div className="flex flex-col text-center items-center mt-10 mb-4 text-white">
-                            <h2 className="font-bold text-xl mt-3 py-1 px-2 lg:p-4 p-3 text-gray-100 bg-gray-800 rounded-lg">Your NFTs</h2>
+                            <h2 className="font-bold text-xl py-1 px-2 lg:p-4 p-3 text-gray-100 bg-gray-800 rounded-lg">Your NFTs</h2>
                             <div className="flex justify-center flex-wrap max-w-screen-xl gap-4">
                                 {data.map((value, index) => (
                                     <NFTTile data={value} key={index} />
@@ -125,10 +125,11 @@ export default function Profile() {
                     </div>
                 )}
             </div>
-            <div className="mt-auto relative z-10">
-                <InfoSection />
+            {/* <div className="mt-auto relative z-10"> */}
+            <div className="mt-auto">
                 <Footer />
             </div>
+        </div>
         </div>
     )
 }
