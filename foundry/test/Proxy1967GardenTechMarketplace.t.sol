@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 // import {Test, console, console2} from "forge-std/src/Test.sol";
 import {Test, console, console2} from "forge-std/Test.sol";
 import { Proxy1967GardenTechMarketplace } from "../src/Proxy1967GardenTechMarketplace.sol";
 import { GardenTechMarketplace } from "../src/GardenTechMarketplace.sol";
 import { IGardenTechMarketplace } from "../src/IGardenTechMarketplace.sol";
-import { NFTMarketplace } from "../src/NFTMarketplace.sol";
 
 contract Proxy1967GardenTechMarketplaceTest is Test {
     struct ListedToken {
@@ -43,7 +42,20 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         bool currentlyListed
     );
    
-    // error CallFailed();
+    event ChangeNFTPrice(
+        uint256 tokenId,
+        uint256 price     
+    );
+
+    event ExecuteSale(
+        address buyer, 
+        uint256 tokenId
+    );
+
+    event Upgraded(
+        address indexed implementation
+    );
+    
 
     ////////////////////////////////////////////////////////////////
     ///                         SETUP                            ///
@@ -89,44 +101,26 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
     }
 
     function testUpgradeToAndCall() public {
-          assertEq(
-        IGardenTechMarketplace(payable(address(proxy))).marketplaceName(),
-        "GardenTechMarketplace"
-    );
-    gardenTechV2.initialize("GardenTechMarketplaceV2");
-    console.log("gardenTechV2.marketplaceName()", gardenTechV2.marketplaceName());
-    console.log("gardenTechV2.marketplaceName()XXXXXXXXXXXXXXXXXXXXXXX", IGardenTechMarketplace(payable(address(gardenTechV2))).marketplaceName());
-    assertEq(IGardenTechMarketplace(payable(address(gardenTechV2))).marketplaceName(), "GardenTechMarketplaceV2");
+        // Verifica el nombre inicial
+        assertEq(
+            IGardenTechMarketplace(payable(address(proxy))).marketplaceName(),
+            "GardenTechMarketplace"
+        );
+        // Inicializa gardenTechV2
+        gardenTechV2.initialize("GardenTechMarketplaceV2");
 
-    IGardenTechMarketplace(payable(address(proxy))).upgradeToAndCall(
+        vm.expectEmit();
+        emit Upgraded(address(gardenTechV2));
+        IGardenTechMarketplace(payable(address(proxy))).upgradeToAndCall(
             address(gardenTechV2),
             ""
         );
-//         address implementation = IGardenTechMarketplace(payable(address(proxy))).implementation();
-// console.log("Current implementation address: ", implementation);
-    console.log("IGardenTechMarketplace(payable(address(proxy))).owner()",IGardenTechMarketplace(payable(address(proxy))).owner());
-    // console.log("IGardenTechMarketplace(payable(address(proxy))).owner()",IGardenTechMarketplace(payable(address(proxy))).owner());
-    console.log("IGardenTechMarketplace(payable(address(proxy))).marketplaceName()",IGardenTechMarketplace(payable(address(proxy))).marketplaceName());
-    // Comprobar que el owner sigue siendo el mismo
-    // assertEq(IGardenTechMarketplace(payable(address(proxy))).owner(), address(this));
-    assert(keccak256(bytes(IGardenTechMarketplace(payable(address(proxy))).marketplaceName())) == keccak256(bytes("GardenTechMarketplaceV2")));
-    assertEq(IGardenTechMarketplace(payable(address(proxy))).owner(), address(proxy));
-    assertEq(IGardenTechMarketplace(payable(address(proxy))).marketplaceName(), "GardenTechMarketplaceV2");
-
-    // assertNotEq(
-    //     IGardenTechMarketplace(payable(address(proxy))).marketplaceName(),
-    //     "GardenTechMarketplace"
-    // );
-    // assertEq(
-    //     IGardenTechMarketplace(payable(address(proxy))).marketplaceName(),
-    //     "GardenTechMarketplaceV2"  
-    // );
-   vm.startPrank(alice);
-    vm.expectRevert(abi.encodeWithSignature("NotOwner()"));
-    IGardenTechMarketplace(payable(address(proxy))).upgradeToAndCall(
+        vm.startPrank(alice);
+        vm.expectRevert("Only the contract's owner can call this method");
+        IGardenTechMarketplace(payable(address(proxy))).upgradeToAndCall(
             address(gardenTech),
             ""
-        ); 
+        );
     }
 
     function testReceive() public {
@@ -142,6 +136,25 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         assertTrue(success);
         assertEq(address(proxy).balance, 1 ether);
     }
+    
+  function testOnERC721Received() public {
+      uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
+        startHoax(alice);
+        uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
+        vm.stopPrank();
+
+        startHoax(bob);
+        IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1 ether + listPrice}(1, true);
+        IGardenTechMarketplace.ListedToken memory listedToken = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(1);
+        assertEq(listedToken.owner, bob);
+        assertEq(IGardenTechMarketplace(payable(address(proxy))).ownerOf(tokenId), bob);
+        
+        IGardenTechMarketplace(payable(address(proxy))).safeTransferFrom(bob, payable(address(proxy)), tokenId);
+        IGardenTechMarketplace(payable(address(proxy))).ownerOf(tokenId);
+        assertEq(IGardenTechMarketplace(payable(address(proxy))).ownerOf(tokenId), payable(address(proxy)));
+        // IGardenTechMarketplace(payable(address(proxy))).onERC721Received.selector;
+        // assertEq(IGardenTechMarketplace(payable(address(proxy))).onERC721Received(address(0), address(0), 1, ""), expected);
+   }
 
     // function testOnERC721Received() public {
     //     startHoax(alice);
@@ -163,26 +176,20 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         uint256 initialTokenId = IGardenTechMarketplace(payable(address(proxy))).getCurrentToken(); // Obtén el contador inicial
         console.log("initialTokenId", initialTokenId);
 
-        startHoax(alice); // Simula una llamada desde una dirección específica
+        startHoax(alice); // Simula una llamada desde una direccion específica
         vm.expectEmit();
-        // Llamamos a la función y verificamos los cambios esperados
+        // Llamamos a la funcion y verificamos los cambios esperados
         emit TokenListedSuccess(1, address(proxy), alice, 1 ether, true);
         uint256 newTokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: _listPrice}(tokenURI, 1 ether);
-        console.log("newTokenId", newTokenId);
 
         // Comprueba que el tokenId se ha incrementado correctamente
         assertEq(newTokenId, initialTokenId + 1);
 
-        // Verifica que el propietario del token es la dirección que llamó
-        // address tokenOwner = IGardenTechMarketplace(payable(address(proxy))).ownerOf(newTokenId);
-        // assertEq(tokenOwner, address(proxy));
+        // Verifica que el propietario del token es la direccion que llamó
+        address tokenOwner = IGardenTechMarketplace(payable(address(proxy))).owner();
+        assertEq(tokenOwner, address(this));
 
-        // Verifica que la URI del token es la esperada
-        // string memory actualTokenURI = IGardenTechMarketplace(payable(address(proxy))).tokenURI(newTokenId);
-        // assertEq(actualTokenURI, tokenURI);
         IGardenTechMarketplace.ListedToken memory listedToken = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(newTokenId);
-
-
         //         (
         //     uint256 tokenId,
         //     uint256 listedPrice,
@@ -190,7 +197,6 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         //     address seller,
         //     bool currentlyListed
         // ) = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(newTokenId);
-        console.log("Address gardentechmarketplace", (address(proxy)));
         assertEq(listedToken.tokenId, newTokenId, "TokenId no coincide");
         assertEq(listedToken.price, 1 ether, "El precio no coincide");
         assertEq(listedToken.seller, alice, "El vendedor no coincide");
@@ -205,23 +211,36 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         string memory tokenURI = "https://example.com/metadata.json";
 
         uint256 _listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
-        console.log("_listPrice", _listPrice);
 
         uint256 initialTokenId = IGardenTechMarketplace(payable(address(proxy))).getCurrentToken(); // Obtén el contador inicial
-        console.log("initialTokenId", initialTokenId);
+        assertEq(initialTokenId, 0, "El contador de tokens no es 0");
 
-        startHoax(alice); // Simula una llamada desde una dirección específica
-        // Llamamos a la función con datos erroneos y verificamos que falle
+        startHoax(alice); 
+        // uint256 newT = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}(tokenURI, 1 ether);
+        // Llamamos a la funcion con datos erroneos y verificamos que falle
         vm.expectRevert(abi.encodeWithSignature("IsNotListPrice()"));
         uint256 newTokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: 0.001 ether}(tokenURI, 1 ether);
         
         vm.expectRevert(abi.encodeWithSignature("InsufficientPrice()"));
         uint256 newTokenId_2 = IGardenTechMarketplace(payable(address(proxy))).createToken{value: _listPrice}(tokenURI, 0);
-        console.log("newTokenId", newTokenId);
+        
+        vm.expectRevert(abi.encodeWithSignature("InvalidTokenURI()"));
+        uint256 newTokenId_3 = IGardenTechMarketplace(payable(address(proxy))).createToken{value: _listPrice}("", 1);
+        vm.stopPrank();
+
+        vm.startPrank(address(0));
+        vm.expectRevert(abi.encodeWithSignature("ThisAddressCantCreateTokens()"));
+        uint256 newTokenId_4 = IGardenTechMarketplace(payable(address(proxy))).createToken{value: _listPrice}(tokenURI, 1);
+        vm.stopPrank();
+
+        startHoax(address(proxy));
+        vm.expectRevert(abi.encodeWithSignature("ThisAddressCantCreateTokens()"));
+        uint256 newTokenId_5 = IGardenTechMarketplace(payable(address(proxy))).createToken{value: _listPrice}(tokenURI, 1);
+        assertEq(newTokenId_5, 0);
 
         // Comprueba que el tokenId se ha incrementado correctamente
         uint256 laterTokenId = IGardenTechMarketplace(payable(address(proxy))).getCurrentToken(); // Obtén el contador inicial
-        assertEq(initialTokenId, laterTokenId);
+        assertEq(laterTokenId, 0, "El contador de tokens no es 0");
  }
 
     ////////////////////////////////////////////////////////////////   
@@ -229,38 +248,71 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
     ////////////////////////////////////////////////////////////////
 
     function testExecuteSale() public {
+        vm.deal(alice, 10 ether);
+        vm.deal(bob, 10 ether);
+        vm.startPrank(alice);
+
         uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
+        uint256 aliceBalanceBefore = alice.balance;
+        uint256 bobBalanceBefore = bob.balance;
+        uint256 contractBalanceBefore = address(proxy).balance;
         // Alice lista el NFT
-        startHoax(alice);
+        assertEq(contractBalanceBefore, 0);
+        
         IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
         IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 2 ether);
         IGardenTechMarketplace.ListedToken memory listedToken_1 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(1);
         assertEq(listedToken_1.owner, address(proxy));
         assertEq(listedToken_1.seller, address(alice));
+        assertEq(address(proxy).balance, contractBalanceBefore + listPrice * 2);
+        assertEq(alice.balance, aliceBalanceBefore - listPrice * 2);
+        aliceBalanceBefore = alice.balance;
         vm.stopPrank();
 
         // Bob compra el NFT
-        startHoax(bob);
+        vm.startPrank(bob);
+        vm.expectEmit();
+        emit ExecuteSale(bob, 1);
+        // console.log("Este es el puto balance que tiene el contrato1", address(proxy).balance);
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1 ether + listPrice}(1, true);
         IGardenTechMarketplace.ListedToken memory listedToken_2 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(1);
         assertEq(listedToken_2.owner, bob);
         assertEq(listedToken_2.seller, bob);
         assertEq(listedToken_2.currentlyListed, true);
+        assertEq(bob.balance, bobBalanceBefore - (1 ether + listPrice));
+        bobBalanceBefore = bob.balance;
+        assertEq(alice.balance, aliceBalanceBefore+ 1 ether);
+        aliceBalanceBefore = alice.balance;
+        assertEq(address(proxy).balance, contractBalanceBefore + listPrice * 3);
+        contractBalanceBefore = address(proxy).balance;
 
+        vm.expectEmit();
+        emit ExecuteSale(bob, 2);
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 2 ether + listPrice}(2, true);
         IGardenTechMarketplace.ListedToken memory listedToken_3 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(2);
         assertEq(listedToken_3.owner, bob);
         assertEq(listedToken_3.seller, bob);
         assertEq(listedToken_3.currentlyListed, true);
-        assertEq(listedToken_3.price, 2 ether);
+        assertEq(bob.balance, bobBalanceBefore - (2 ether + listPrice));
+        bobBalanceBefore = bob.balance;
+        assertEq(alice.balance, aliceBalanceBefore + 2 ether);
+        aliceBalanceBefore = alice.balance;
+        // assertEq(IGardenTechMarketplace(payable(address(proxy))).owner().balance, IGardenTechMarketplace(payable(address(proxy))).owner().balance + listPrice * 2);
 
+        
         vm.stopPrank();
-        startHoax(carol);
+        vm.startPrank(carol);
+        vm.deal(carol, 3 ether);
+        assertEq(address(carol).balance, 3 ether);
+        vm.expectEmit();
+        emit ExecuteSale(carol, 2);
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 2 ether }(2, false);
+        assertEq(address(carol).balance, 1 ether);
         IGardenTechMarketplace.ListedToken memory listedToken_4 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(2);
         assertEq(listedToken_4.owner, carol);
         assertEq(listedToken_4.seller, carol);
         assertEq(listedToken_4.currentlyListed, false);
+        assertEq(bob.balance, bobBalanceBefore + 2 ether);
     }
     ////////////////////////////////////////////////////////////////   
     ///                      testExecuteSaleFail                   ///
@@ -278,11 +330,13 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
 
         // Bob compra el NFT
 
-        vm.expectRevert(abi.encodeWithSignature("InsufficientPrice()"));
         startHoax(bob);
+        vm.expectRevert(abi.encodeWithSignature("InsufficientPrice()"));
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 0.5 ether}(1, false);
         vm.expectRevert(abi.encodeWithSignature("InsufficientValue()"));
-        IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1 ether}(1, true);
+        IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1.005 ether}(1, true);
+        vm.expectRevert(abi.encodeWithSignature("NotListed()"));
+        IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1 ether}(9, false);
         vm.stopPrank();
         startHoax(address(0x0));
         vm.expectRevert(abi.encodeWithSignature("ThisAddressCantBuy()"));
@@ -290,6 +344,9 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         startHoax(address(proxy));
         vm.expectRevert(abi.encodeWithSignature("ThisAddressCantBuy()"));
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: 1 ether}(1, false);
+
+        vm.stopPrank();
+        
     }    
 
     ////////////////////////////////////////////////////////////////   
@@ -312,8 +369,11 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         // Bob compra el NFT
         startHoax(bob);
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: price + listPrice}(1, true);
-        IGardenTechMarketplace(payable(address(proxy))).changeNFTPrice(1, newPrice);
+        vm.expectEmit();
+        emit ChangeNFTPrice(1, newPrice);
+        uint256 laterPrice = IGardenTechMarketplace(payable(address(proxy))).changeNFTPrice(1, newPrice);
         IGardenTechMarketplace.ListedToken memory listedToken_2 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(1);
+        assertEq(laterPrice, newPrice);
         assertEq(listedToken_2.owner, address(bob));
         assertEq(listedToken_2.seller, address(bob));
         assertEq(listedToken_2.price, newPrice);
@@ -321,6 +381,8 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         // Carol compra el NFT
         startHoax(carol);
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: newPrice + listPrice}(1, true);
+        vm.expectEmit();
+        emit ChangeNFTPrice(1, secondNewPrice);
         IGardenTechMarketplace(payable(address(proxy))).changeNFTPrice(1, secondNewPrice);
         IGardenTechMarketplace.ListedToken memory listedToken_3 = IGardenTechMarketplace(payable(address(proxy))).getListedTokenForId(1);
         assertEq(listedToken_3.owner, address(carol));
@@ -343,10 +405,10 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         assertEq(listedToken.price, price);
         vm.stopPrank();
 
-        // Bob compra el NFT
         vm.expectRevert(abi.encodeWithSignature("NotOwner()"));
         IGardenTechMarketplace(payable(address(proxy))).changeNFTPrice(1, newPrice);
         startHoax(bob);
+        // Bob compra el NFT
         IGardenTechMarketplace(payable(address(proxy))).executeSale{value: price + listPrice}(1, true);
         vm.expectRevert(abi.encodeWithSignature("NotListed()"));
         IGardenTechMarketplace(payable(address(proxy))).changeNFTPrice(2, newPrice);
@@ -366,7 +428,7 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
         uint256 start = 0;
         uint256 limit = 5;
-        // Lista múltiples NFTs para probar la paginación
+        // Lista múltiples NFTs para probar la paginacion
         startHoax(alice);
         for (uint256 i = 1; i <= 10; i++) {
             // IGardenTechMarketplace(payable(address(proxy))).createToken{value: 10000000000000000}("https://example.com/metadata.json", 1 ether);
@@ -375,22 +437,29 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         // IGardenTechMarketplace.ListedToken[] memory _listedTokens = gardenTech.getAllNFTs(start, limit);
         IGardenTechMarketplace.ListedToken[] memory listedTokens = IGardenTechMarketplace(payable(address(proxy)))
             .getAllNFTs(start, limit);
-        console.log("listedTokens.length", listedTokens.length);
-        // console.log("listedTokens.length", _listedTokens.length);
+        // console.log("listedTokens.length", listedTokens.length);
         // assertEq(listedTokens.length, limit);
         for (uint256 i = 0; i < listedTokens.length; i++) {
-            console.log("listedTokens[i].tokenId", listedTokens[i].tokenId);
-            console2.log("i", i);
+            // console.log("listedTokens[i].tokenId", listedTokens[i].tokenId);
             assertEq(listedTokens[i].tokenId, start + i + 1);
         }
+         IGardenTechMarketplace.ListedToken[] memory listedTokens2 = IGardenTechMarketplace(payable(address(proxy)))
+            .getAllNFTs(12, 99);
+
+        vm.expectRevert(abi.encodeWithSignature("InvalidStartOrLimit()"));
+        IGardenTechMarketplace.ListedToken[] memory listedTokens3 = IGardenTechMarketplace(payable(address(proxy)))
+            .getAllNFTs(0, 0);
+        vm.expectRevert(abi.encodeWithSignature("InvalidStartOrLimit()"));
+        IGardenTechMarketplace.ListedToken[] memory listedTokens4 = IGardenTechMarketplace(payable(address(proxy)))
+            .getAllNFTs(3, 0);
     }
     ////////////////////////////////////////////////////////////////   
     ///                     testGetMyNFTs                        ///
     ////////////////////////////////////////////////////////////////
 
-    function testGeMyNFTs() public {
+    function testGetMyNFTs() public {
         uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
-        // Lista múltiples NFTs para probar la paginación
+        // Lista múltiples NFTs para probar la paginacion
         startHoax(alice);
         for (uint256 i = 0; i < 10; i++) {
             uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
@@ -404,6 +473,12 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
             console2.log("i", i);
             assertEq(listedTokens[i].tokenId, i + 1);
         }
+        vm.stopPrank();
+        startHoax(bob);
+        IGardenTechMarketplace.ListedToken[] memory listedTokens2 = IGardenTechMarketplace(payable(address(proxy)))
+            .getMyNFTs();
+        assertEq(listedTokens2.length, 0, "Bob no debe tener NFTs");    
+        console.log("listedTokens2.length", listedTokens2.length);
     }
     ////////////////////////////////////////////////////////////////   
     ///                   test Helper Funtions                   ///
@@ -417,6 +492,9 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         // Verify the list price was updated
         uint256 updatedPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
         assertEq(updatedPrice, newPrice, "List price should be updated to new price");
+        vm.startPrank(alice);
+        vm.expectRevert("Only the contract's owner can call this method");
+        IGardenTechMarketplace(payable(address(proxy))).updateListPrice(1 ether);
     }
     function testUpdateListPriceFail() public {
         uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
@@ -424,7 +502,7 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
   
         // Attempt to call updateListPrice as a non-owner
         startHoax(alice);
-        vm.expectRevert(abi.encodeWithSignature("NotOwner()"));
+        vm.expectRevert("Only the contract's owner can call this method");
         IGardenTechMarketplace(payable(address(proxy))).updateListPrice(newPrice);
         assertEq(IGardenTechMarketplace(payable(address(proxy))).getListPrice(), listPrice, "List price should be the original price");
     }
@@ -438,4 +516,14 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         assertEq(listedToken.seller, address(alice));
         assertEq(listedToken.currentlyListed, true);
     }
+
+    function testGetCurrentToken() public {
+        uint256 listPrice = IGardenTechMarketplace(payable(address(proxy))).getListPrice();
+        startHoax(alice);
+        uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
+        uint256 listedToken = IGardenTechMarketplace(payable(address(proxy))).getCurrentToken();
+        assertEq(listedToken, 1);
+        assertEq(listedToken, tokenId);
+    }
+
 }

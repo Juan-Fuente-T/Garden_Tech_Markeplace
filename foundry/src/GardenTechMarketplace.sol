@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.4;
 
 //Console functions to help debug the smart contract just like in Javascript
 // import "hardhat/console.sol";
 
 import "forge-std/Test.sol";
 
-import {Test, console, console2} from "forge-std/Test.sol";
+// import {Test, console, console2} from "forge-std/Test.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
@@ -73,6 +73,12 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         uint256 price     
     );
 
+    //the event emitted when a token is successfully sold  
+    event ExecuteSale(
+        address buyer, 
+        uint256 tokenId
+    );
+
     ////////////////////////////////////////////////////////////////
     ///                          Errors                          ///
     ////////////////////////////////////////////////////////////////
@@ -82,8 +88,11 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     error IsNotListPrice();
     error NotOwner();
     error ThisAddressCantBuy();
+    error ThisAddressCantCreateTokens();
     error InsufficientValue();
     error NotListed();
+    error InvalidStartOrLimit();
+    error InvalidTokenURI();
 
     ////////////////////////////////////////////////////////////////
     ///                       Constructor                        ///
@@ -133,7 +142,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     function _authorizeUpgrade(
         address newImplementation
     ) internal override onlyOwner {
-        // Posible lógica de autorización para la actualización de la implementación
+        // Posible logica de autorizacion para la actualizacion de la implementación
     }
 
 
@@ -146,10 +155,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
      * @dev Only the contract owner can update the listing price.
      * @param _listPrice The new listing price.
      */
-    function updateListPrice(uint256 _listPrice) public payable {
-        if( msg.sender != owner){
-            revert NotOwner();
-        }
+    function updateListPrice(uint256 _listPrice) public payable onlyOwner() {
         listPrice = _listPrice;
     }
 
@@ -191,45 +197,6 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
      */
     function getCurrentToken() public view returns (uint256) {
         return _tokenIds;
-    }
-
-    /**
-    * @notice Creates a listing for an NFT token with a specified price.
-    * @dev This function requires the sender to send the exact listing price in ETH and ensures the price is greater than zero.
-    * It updates the mapping of token IDs to their listing details and transfers the token to the contract.
-    * Emits a {TokenListedSuccess} event upon successful listing.
-    * @param tokenId The ID of the token to be listed.
-    * @param price The price at which the token is to be listed.
-    * @custom:reverts If the sent ETH is not equal to the listing price or if the price is zero.
-    */
-    function createListedToken(uint256 tokenId, uint256 price) private {
-        //Make sure the sender sent enough ETH to pay for listing
-        if (msg.value != listPrice){
-            revert IsNotListPrice();
-        }
-        //Just sanity check
-        if(price == 0){
-            revert InsufficientPrice();
-        }
-        
-        //Update the mapping of tokenId's to Token details, useful for retrieval functions
-        idToListedToken[tokenId] = ListedToken(
-            tokenId,
-            price,
-            payable(address(this)),
-            payable(msg.sender),
-            true
-        );
-
-        _transfer(msg.sender, address(this), tokenId);
-        //Emit the event for successful transfer. The frontend parses this message and updates the end user
-        emit TokenListedSuccess(
-            tokenId,
-            address(this),
-            msg.sender,
-            price,
-            true
-        );
     }
 
     /**
@@ -278,24 +245,24 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     * @return An array of ListedToken objects representing a subset of NFTs currently listed for sale.
     */
     function getAllNFTs(uint256 start, uint256 limit) public view returns (ListedToken[] memory) {
-        require(start >= 0 && limit > 0, "Invalid start or limit");
+        if(start < 0 || limit == 0 || start > limit) {
+            revert  InvalidStartOrLimit();
+        }
         uint256 nftCount = _tokenIds;
         uint256 listedCount = 0;
         
-        // Primero, contamos cuántos NFTs listados hay en total
+        // Primero, contamos cuantos NFTs listados hay en total
         for (uint256 i = 0; i <= nftCount; i++) {
             if (idToListedToken[i].currentlyListed) {
                 listedCount++;
-                console2.log("Listed Token ID:", i);
             }
         }
-        // Calculamos cuántos NFTs vamos a devolver
+        // Calculamos cuantos NFTs vamos a devolver
         uint256 returnedCount = 0;
         if (start < listedCount) {
             returnedCount = (listedCount - start < limit) ? listedCount - start : limit;
         }
         
-        console2.log("Returned count:", returnedCount);
         ListedToken[] memory tokens = new ListedToken[](returnedCount);
         uint256 index = 0;
         uint256 currentListedCount = 0;
@@ -304,7 +271,6 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
             if (idToListedToken[i].currentlyListed) {
                 if (currentListedCount >= start) {
                     tokens[index] = idToListedToken[i];
-                    console2.log("Token added to return array, index:", index);
                     index++;
                 }
                 currentListedCount++;
@@ -366,6 +332,15 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         string memory tokenURI,
         uint256 price
     ) public payable returns (uint256) {
+        if (price == 0) {
+            revert InsufficientPrice();
+        }
+        if (keccak256(abi.encodePacked(tokenURI)) == keccak256(abi.encodePacked(""))) {
+            revert InvalidTokenURI();
+        }
+        if(msg.sender == address(0) || msg.sender == address(this)) {
+            revert ThisAddressCantCreateTokens();
+        }
         //Increment the tokenId counter, which is keeping track of the number of minted NFTs
         _tokenIds++;
         uint256 newTokenId = _tokenIds;
@@ -380,6 +355,44 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         createListedToken(newTokenId, price);
 
         return newTokenId;
+    }
+        /**
+    * @notice Creates a listing for an NFT token with a specified price.
+    * @dev This function requires the sender to send the exact listing price in ETH and ensures the price is greater than zero.
+    * It updates the mapping of token IDs to their listing details and transfers the token to the contract.
+    * Emits a {TokenListedSuccess} event upon successful listing.
+    * @param tokenId The ID of the token to be listed.
+    * @param price The price at which the token is to be listed.
+    * @custom:reverts If the sent ETH is not equal to the listing price or if the price is zero.
+    */
+    function createListedToken(uint256 tokenId, uint256 price) private {
+        //Make sure the sender sent enough ETH to pay for listing
+        if (msg.value != listPrice){
+            revert IsNotListPrice();
+        }
+        //Just sanity check
+        if(price == 0){
+            revert InsufficientPrice();
+        }
+        
+        //Update the mapping of tokenId's to Token details, useful for retrieval functions
+        idToListedToken[tokenId] = ListedToken(
+            tokenId,
+            price,
+            payable(address(this)),
+            payable(msg.sender),
+            true
+        );
+
+        _transfer(msg.sender, address(this), tokenId);
+        //Emit the event for successful transfer. The frontend parses this message and updates the end user
+        emit TokenListedSuccess(
+            tokenId,
+            address(this),
+            msg.sender,
+            price,
+            true
+        );
     }
 
     ////////////////////////////////////////////////////////////////
@@ -398,8 +411,12 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         if(msg.sender == address(this) || msg.sender == address(0)){
             revert ThisAddressCantBuy();
         }
+        if(!idToListedToken[tokenId].currentlyListed){
+            revert NotListed();
+        }
         uint256 price = idToListedToken[tokenId].price;
         
+        address seller = idToListedToken[tokenId].seller;
 
         idToListedToken[tokenId].seller = payable(msg.sender);
         _itemsSold++;
@@ -423,13 +440,15 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
         }
 
         //Transfer the listing fee to the marketplace creator
-        // payable(owner).transfer(listPrice);
-        (bool success, ) = payable(idToListedToken[tokenId].seller).call{value: listPrice}("");
-        require(success, "Transfer to seller failed");
-        // (bool success, ) = payable(idToListedToken[tokenId].seller).call{value: idToListedToken[tokenId].price}("");
-        // require(success, "Transfer to seller failed");
+        // payable(address(this)).transfer(listPrice);
+        (bool success, ) = payable(address(this)).call{value: listPrice}("");
+        require(success, "Transfer to owner of the contract failed");
+
         //Transfer the proceeds from the sale to the seller of the NFT
-        payable(idToListedToken[tokenId].seller).transfer(idToListedToken[tokenId].price);
+        (bool success2, ) = payable(seller).call{value: idToListedToken[tokenId].price}("");
+        require(success2, "Transfer to seller failed");
+        // payable(seller).transfer(idToListedToken[tokenId].price);
+        emit ExecuteSale(msg.sender, tokenId);
     }
 
     ////////////////////////////////////////////////////////////////
