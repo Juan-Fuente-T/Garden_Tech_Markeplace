@@ -87,7 +87,7 @@ export default function Marketplace() {
     const fetchData = async () => {
       if (contract && address) {
         let currentStart = 0;
-        const limit = 2;
+        const limit = 9;
         let allNFTs = [];
         let moreTokens = true;
         try {;
@@ -109,6 +109,7 @@ export default function Marketplace() {
               moreTokens = false;  // Si no hay más tokens, salimos del bucle
             }
           }
+          console.log("allNFT", allNFTs);
           // Procesar los NFT y actualizar el estado
           const nftData = await Promise.all(allNFTs.map(async (item) => {
             const tokenURI = await contract.tokenURI(item.tokenId);
@@ -121,6 +122,7 @@ export default function Marketplace() {
               price: item.price.toString(),
             };
           }));
+          console.log("NFT data", nftData);
           updateData(nftData);
 
           setLoading(false);
