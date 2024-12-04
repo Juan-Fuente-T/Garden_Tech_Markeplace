@@ -1,6 +1,6 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import InfoSection from "./InfoSection";
+import ModalChangePrice from "./ModalChangePrice";
 import { useParams } from 'react-router-dom';
 import axios from "axios";
 import { useState } from "react";
@@ -15,6 +15,12 @@ export default function NFTPage(props) {
     const [dataFetched, updateDataFetched] = useState(false);
     const [tokenId, setTokenId] = useState(0);
     const [accounts, setAccounts] = useState([]);
+    const [listPrice, setListPrice] = useState(0);
+    const [showModal, setShowModal] = useState(false);
+
+    const openModal = () => setShowModal(true);
+    const closeModal = () => setShowModal(false);
+
     const { contract, address, isConnected } = useContract();
 
     const params = useParams();
@@ -25,22 +31,25 @@ export default function NFTPage(props) {
     async function getNFTData(tokenId) {
         if (contract) {
             try {
+                const listPrice = await contract.getListPrice();
+                setListPrice(listPrice);
                 var tokenURI = await contract.tokenURI(tokenId);
                 const listedToken = await contract.getListedTokenForId(tokenId);
                 tokenURI = GetIpfsUrlFromPinata(tokenURI);
                 let meta = await axios.get(tokenURI);
                 meta = meta.data;
-                console.log("address owner y seller", listedToken.owner, listedToken.seller);
 
                 let item = {
-                    price: meta.price,
+                    price: ethers.utils.formatEther(listedToken.price), // Ajusta el precio para que se muestre en etherlistedToken.price,
                     tokenId: tokenId,
-                    seller: listedToken.seller,
                     owner: listedToken.owner,
+                    seller: listedToken.seller,
+                    currentlyListed: listedToken.currentlyListed,
                     image: meta.image,
                     name: meta.name,
                     description: meta.description,
                 }
+                // console.log("item", item);  
                 updateData(item);
                 updateDataFetched(true);
             } catch (error) {
@@ -52,24 +61,54 @@ export default function NFTPage(props) {
     }
 
 
-    async function buyNFT(tokenId) {
-        if (contract) {
+    async function buyNFT(tokenId, sell) {
+        if (contract && tokenId) {
             try {
                 if (!data?.price) {
                     throw new Error("Price is not defined");
                 }
-                const salePrice = ethers.utils.parseUnits(data?.price.toString(), 'ether')
-                updateMessage("Buying the NFT... Please Wait (Upto 5 mins)")
-                //run the executeSale function
-                let transaction = await contract.executeSale(tokenId, { value: salePrice });
-                await transaction.wait();
 
-                alert('You successfully bought the NFT!');
+                const basePrice = data?.price.toString();
+                const salePrice = sell
+                    ? basePrice + listPrice
+                    : basePrice;
+                const _salePrice = ethers.utils.parseEther(salePrice.toString());
+                updateMessage("Buying the NFT... Please Wait (Upto 2 mins)")
+                //run the executeSale function
+                const transaction = await contract.executeSale(tokenId, sell, { value: _salePrice });
+                await transaction.wait();
+                sell === false ? alert('You successfully claim the NFT!') : alert('You successfully bought the NFT!');
                 updateMessage("");
+                getNFTData(tokenId);
             }
             catch (e) {
                 console.error("Error buying NFT:", e);
                 alert("Upload Error" + e)
+                updateMessage("");
+            }
+        }
+    }
+
+    async function changeNFTPrice(tokenId, newPrice) {
+        if (contract && isConnected && tokenId) {
+            try {
+                if (!newPrice) {
+                    throw new Error("Price is not defined");
+                }
+                const newSalePrice = ethers.utils.parseUnits(newPrice.toString(), 'ether')
+                updateMessage("Changing the NFT price... Please Wait (Upto 2 mins)")
+                //run the executeSale function
+                let transaction = await contract.changeNFTPrice(tokenId, newSalePrice);
+                await transaction.wait();
+
+                alert('You successfully changed the NFT price!');
+                updateMessage("");
+                getNFTData(tokenId);
+            }
+            catch (e) {
+                console.error("Error changing the NFT price:", e);
+                alert("Upload Error" + e)
+                updateMessage("");
             }
         }
     }
@@ -118,12 +157,11 @@ export default function NFTPage(props) {
 
     if (!data) {
         // return <div>No se encontró información para este NFT</div>;
-        return <div>Dont exist information for this NFT</div>;
+        return <div className="w-fit mt-52 text-gray-900 text-3xl font-bold bg-gray-100 py-2 px-8 rounded-md">Dont exist information for this NFT</div>;
     }
 
     if (typeof data?.image == "string")
         data.image = GetIpfsUrlFromPinata(data?.image);
-
     return (
         <div className="mb-12" style={{ "minHeight": "100vh" }}>
             <Navbar></Navbar>
@@ -180,9 +218,56 @@ export default function NFTPage(props) {
                             {accounts.length > 0 ?
                                 // address.toLowerCase() === data.seller.toLowerCase() || address.toLowerCase() === data.owner.toLowerCase() ?
                                 //     <div className="text-white">You are the owner of this NFT</div> : 
+                                // <div className="flex justify-start">
+                                //     <button className="items-end enableEthereumButton bg-sky-500 hover:bg-sky-600 hover:scale-105 text-sky-100 font-bold py-2 px-4 rounded text-lg font-bold" 
+                                //     onClick={() => buyNFT(data?.tokenId , data?.seller.toLowerCase() !== address.toLowerCase())}
+                                //     >
+                                //       {data.seller.toLowerCase() === address.toLowerCase() ? "Claim" : "Buy"}
+                                //     </button>
+                                // </div>
                                 <div className="flex justify-start">
-                                    <button className="items-end enableEthereumButton bg-sky-500 hover:bg-sky-600 hover:scale-105 text-sky-100 font-bold py-2 px-4 rounded text-lg font-bold" onClick={() => buyNFT(tokenId)}>Buy this NFT</button>
+                                    {data?.seller.toLowerCase() === address.toLowerCase() ? (
+                                        // Si la dirección es del dueño, muestra solo "Claim"
+                                        data?.currentlyListed ? (
+                                            <>
+                                                <button
+                                                    className="bg-blue-600 hover:bg-blue-800 hover:scale-105 text-white font-bold py-2 px-4 rounded mr-2"
+                                                    onClick={() => buyNFT(data.tokenId, false)} // Pasamos `false` para retirar del marketplace
+                                                >
+                                                    Claim
+                                                </button><button
+                                                    className="bg-blue-700 hover:bg-blue-800  hover:scale-105 text-white font-bold py-2 px-4 rounded"
+                                                    onClick={openModal}
+                                                >
+                                                    Change NFT Price
+                                                </button>
+                                            </>
+                                        ) : null
+                                    ) : (
+                                        // Si la dirección NO es del dueño, muestra "Buy and Claim" y "Buy and Sell"
+                                        <>
+                                            <button
+                                                className="bg-blue-600 hover:bg-blue-800 hover:scale-105 text-white font-bold py-2 px-4 rounded mr-2"
+                                                onClick={() => buyNFT(data.tokenId, false)} // Pasamos `false` para comprar y retirar del marketplace
+                                            >
+                                                Buy and Claim
+                                            </button>
+                                            <button
+                                                className="bg-blue-700 hover:bg-blue-800 hover:scale-105 text-white font-bold py-2 px-4 rounded"
+                                                onClick={() => buyNFT(data.tokenId, true)} // Pasamos `true` para comprar y listar nuevamente
+                                            >
+                                                Buy and Sell
+                                            </button>
+                                        </>
+                                    )}
+                                    <ModalChangePrice
+                                        show={showModal}
+                                        onClose={closeModal}
+                                        changeNFTPrice={changeNFTPrice}
+                                        tokenId={data.tokenId} // Asegúrate de que `tokenId` esté disponible en este scope.
+                                    />
                                 </div>
+
                                 : <div className="text-red-400">
                                     Please connect your wallet to buy this NFT
                                 </div>

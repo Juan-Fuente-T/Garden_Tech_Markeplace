@@ -28,7 +28,6 @@ export default function Profile() {
 
     async function getNFTData(tokenId) {
         if (!contract) return;
-        console.log("contract", contract);
         try {
             let sumPrice = 0;
 
@@ -38,18 +37,12 @@ export default function Profile() {
             * Below function takes the metadata from tokenURI and the data returned by getMyNFTs() contract function
             * and creates an object of information that is to be displayed
             */
-
-           console.log("transaction", transaction);
             const items = await Promise.all(transaction.map(async i => {
                 const tokenURI = await contract.tokenURI(i.tokenId);
                 let meta = await axios.get(tokenURI);
                 meta = meta.data;
-                console.log("tokenURI", tokenURI);
-                console.log("meta", meta);
-                console.log("meta.data", meta.data);
                 
                 let price = ethers.utils.formatUnits(i.price.toString(), 'ether');
-                console.log("price", price);
                 let item = {
                     price,
                     tokenId: i.tokenId.toNumber(),
@@ -59,7 +52,7 @@ export default function Profile() {
                     name: meta.name,
                     description: meta.description,
                 }
-                console.log("item", item);
+                // console.log("item", item);
                 sumPrice += Number(price);
                 return item;
             }))
@@ -74,7 +67,7 @@ export default function Profile() {
     }
 
     if (!dataFetched) getNFTData(tokenId);
-    console.log("XX", isConnected, contract, dataFetched);
+    
     return (
         // <div className="profileClass" style={{ "minHeight": "100vh" }}>
         // <div className="flex flex-col min-h-screen">
@@ -96,21 +89,21 @@ export default function Profile() {
                         </div>
                 ) : (
                     <div className="flex flex-col items-center w-full p-4 overflow-y-auto"> 
-                        <div className="flex text-center flex-col items-center mt-4 md:text-2xl text-white">
+                        <div className="flex text-center flex-col items-center md:text-2xl text-white">
                             <div className="flex flex-row text-center justify-center md:text-2xl">
-                                <h2 className="font-bold py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">Your wallet address: {address}</h2>
+                                <h2 className="text-sm font-bold py-2 px-2 text-gray-100 bg-gray-800 rounded-lg mt-4">Your wallet address: {address}</h2>
                             </div>
                         </div>
                         <div className="flex flex-col items-center lg:flex-row text-center justify-center mt-6 md:text-2xl">
                             <div>
-                                <h2 className="font-bold mt-2 py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">You own this number of NFTs: {data.length}</h2>
+                                <h2 className="font-bold mt-1 py-1 px-8 text-gray-100 bg-gray-800 rounded-lg">You own this number of NFTs: {data.length}</h2>
                             </div>
                             <div className="lg:ml-20">
-                                <h2 className="font-bold mt-2 py-1 px-2 lg:p-4 text-gray-100 bg-gray-800 rounded-lg">Total Value: {totalPrice} ETH</h2>
+                                <h2 className="font-bold mt-1 py-1 px-8 text-gray-100 bg-gray-800 rounded-lg">Total Value: {totalPrice} ETH</h2>
                             </div>
                         </div>
                         <div className="flex flex-col text-center items-center mt-10 mb-4 text-white">
-                            <h2 className="font-bold text-xl py-1 px-2 lg:p-4 p-3 text-gray-100 bg-gray-800 rounded-lg">Your NFTs</h2>
+                            <h2 className="font-bold text-lg py-1 px-8  text-gray-100 bg-gray-800 rounded-lg">Your NFTs</h2>
                             <div className="flex justify-center flex-wrap max-w-screen-xl gap-4">
                                 {data.map((value, index) => (
                                     <NFTTile data={value} key={index} />

@@ -432,7 +432,8 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         startHoax(alice);
         for (uint256 i = 1; i <= 10; i++) {
             // IGardenTechMarketplace(payable(address(proxy))).createToken{value: 10000000000000000}("https://example.com/metadata.json", 1 ether);
-            uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
+            uint256 price = i * 1 ether;
+            uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", price);
         }
         // IGardenTechMarketplace.ListedToken[] memory _listedTokens = gardenTech.getAllNFTs(start, limit);
         IGardenTechMarketplace.ListedToken[] memory listedTokens = IGardenTechMarketplace(payable(address(proxy)))
@@ -440,6 +441,7 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         // console.log("listedTokens.length", listedTokens.length);
         // assertEq(listedTokens.length, limit);
         for (uint256 i = 0; i < listedTokens.length; i++) {
+            // console.log("listedTokens.length", listedTokens[i].price);
             // console.log("listedTokens[i].tokenId", listedTokens[i].tokenId);
             assertEq(listedTokens[i].tokenId, start + i + 1);
         }
@@ -464,7 +466,7 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         for (uint256 i = 0; i < 10; i++) {
             uint256 tokenId = IGardenTechMarketplace(payable(address(proxy))).createToken{value: listPrice}("https://example.com/metadata.json", 1 ether);
         }
-        // IGardenTechMarketplace.ListedToken[] memory _listedTokens = gardenTech.getAllNFTs(start, limit);
+
         IGardenTechMarketplace.ListedToken[] memory listedTokens = IGardenTechMarketplace(payable(address(proxy)))
             .getMyNFTs();
         console.log("listedTokens.length", listedTokens.length);

@@ -43,8 +43,7 @@ export const ContractProvider = ({ children }) => {
 
         setAddress(userAddress);
         setIsConnected(true);
-
-        // Inicializar contrato 
+         // Inicializar contrato 
         const contractAInstance = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer);
         setContract(contractAInstance);
 

@@ -245,7 +245,7 @@ contract GardenTechMarketplace is ERC721URIStorage, IERC721Receiver, UUPSUpgrade
     * @return An array of ListedToken objects representing a subset of NFTs currently listed for sale.
     */
     function getAllNFTs(uint256 start, uint256 limit) public view returns (ListedToken[] memory) {
-        if(start < 0 || limit == 0 || start > limit) {
+        if(start < 0 || limit == 0 || limit > _tokenIds) {
             revert  InvalidStartOrLimit();
         }
         uint256 nftCount = _tokenIds;

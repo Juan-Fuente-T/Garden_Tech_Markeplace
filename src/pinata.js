@@ -34,7 +34,7 @@ export const uploadJSONToIPFS = async(JSONBody) => {
 export const uploadFileToIPFS = async(file) => {
     const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
     //making axios POST request to Pinata ⬇️
-    console.log("File size:", file.size, "bytes");
+    // console.log("File size:", file.size, "bytes");
 
     let data = new FormData();
     data.append('file', file);
@@ -75,7 +75,7 @@ export const uploadFileToIPFS = async(file) => {
             }
         })
         .then(function (response) {
-            console.log("image uploaded", response.data.IpfsHash)
+            // console.log("image uploaded", response.data.IpfsHash)
             return {
                success: true,
                pinataURL: "https://gateway.pinata.cloud/ipfs/" + response.data.IpfsHash
