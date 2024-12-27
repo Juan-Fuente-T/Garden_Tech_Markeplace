@@ -177,9 +177,9 @@ export default function NFTPage(props) {
                     <p className="text-xl lg:text-3xl py-1 px-4 lg:py-2x lg:px-12 text-gray-100 bg-gray-800 rounded-lg mt-20 mb-8">Buy this NFT</p>
                     {/* <img src={data?.image} alt="" className="w-2/5" /> */}
                     <div className="flex flex-col xl:flex-row justify-center items-center">
-                        <img src={data?.image} alt="" className="w-5/6 md:w-3/5 xl:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg m-4 lg:m-4 mt-8" />
+                        <img src={data?.image} alt="" className="w-full md:w-3/5 xl:w-2/5 h-auto border-2 border-gray-900 shadow-2xl rounded-lg m-4 lg:m-4 mt-8" />
                         {/* <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5"> */}
-                        <div className="flex flex-col text-xs lg:text-2xl text-gray-100 w-fit md:w-2/3 lg:w-fit max-w-4xl break-all m-4 lg:m-4 mt-4 mb-24 p-4 lg:p-12 bg-gray-900 bg-opacity-70 space-y-4 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
+                        <div className="flex flex-col text-xs lg:text-2xl text-gray-100 w-fit md:w-2/3 lg:w-fit max-w-4xl break-all m-0 lg:m-4 md:mt-4 md:mb-24 p-4 lg:p-12 bg-gray-900 bg-opacity-70 space-y-4 shadow-2xl rounded-lg border-2 border-gray-900 overflow-ellipsis" >
                             <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
                                 Name: {data?.name}
                             </div>
@@ -193,12 +193,12 @@ export default function NFTPage(props) {
                                 Owner: <span className="whitespace-nowrap">{data?.owner.toLowerCase() === "0xb5058c943d65f9cb49278ea9edc79b7cef748ffb" ? "Garden Tech NFT" : data?.owner}</span>
                             </div> */}
                             <div className="bg-gray-700 py-1 px-4 w-fit rounded-md">
-                                Seller: <span className="whitespace-nowrap">{data?.seller.toLowerCase() === address.toLowerCase() ? "You" : data?.seller}</span>
+                                Seller: <span className="whitespace-normal break-words">{data?.seller.toLowerCase() === address.toLowerCase() ? "You" : data?.seller}</span>
                             </div>
                             <div className="flex flex-col xl:flex-row gap-2 text-xs lg:text-xl">
                                 <div className="bg-gray-700 py-1 px-4 rounded-md flex items-center">
                                     <span className="mr-2 whitespace-nowrap">To import:</span>
-                                    <span className="bg-gray-800 px-2 py-1 rounded whitespace-nowrap">
+                                    <span className="bg-gray-800 px-2 py-1 rounded whitespace-normal break-words">
                                         {data?.owner ? data?.owner : ""}
                                     </span>
                                 </div>

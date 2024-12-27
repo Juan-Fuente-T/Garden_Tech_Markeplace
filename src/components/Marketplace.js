@@ -16,8 +16,8 @@ export default function Marketplace() {
   const [loading, setLoading] = useState(true);
   // const [allNFTs, setAllNFTs] = useState([]);
 
-  
-  //ALTERNATIVA declarando profider, signer y contract
+
+  //ALTERNATIVA declarando provider, signer y contract
   // async function getAllNFTData(tokenId) {
   //   try {
   //       //This code will get providers and signers
@@ -90,7 +90,8 @@ export default function Marketplace() {
         const limit = 9;
         let allNFTs = [];
         let moreTokens = true;
-        try {;
+        try {
+          ;
           while (moreTokens) {
             // Llamar al contrato para obtener NFTs desde 'currentStart' con un límite de 'limit'
             const tokens = await contract.getAllNFTs(currentStart, limit);
@@ -109,7 +110,7 @@ export default function Marketplace() {
               moreTokens = false;  // Si no hay más tokens, salimos del bucle
             }
           }
-          console.log("allNFT", allNFTs);
+          // console.log("allNFT", allNFTs);
           // Procesar los NFT y actualizar el estado
           const nftData = await Promise.all(allNFTs.map(async (item) => {
             const tokenURI = await contract.tokenURI(item.tokenId);
@@ -122,7 +123,7 @@ export default function Marketplace() {
               price: item.price.toString(),
             };
           }));
-          console.log("NFT data", nftData);
+          // console.log("NFT data", nftData);
           updateData(nftData);
 
           setLoading(false);
@@ -138,20 +139,19 @@ export default function Marketplace() {
 
 
   return (
-    <div className="flex flex-col min-h-screen"> {/* CAMBIO: h-screen a min-h-screen */}
+    <div className="flex flex-col min-h-screen"> 
       <Navbar />
-      <div className="flex-grow flex items-center justify-center mb-8 pt-24 pb-40"> {/* CAMBIO: Eliminado overflow-y-auto */}
+      <div className="flex-grow flex items-center justify-center mb-8 pt-24 pb-40"> 
         {loading && address ? (
           <Loader loadingText={"Downloading..."} />
         ) : (
-          <div className="flex flex-col place-items-center w-full max-w-screen-s2xl mx-auto px-4"> {/* CAMBIO: Ajustado contenedor principal */}
+          <div className="flex flex-col place-items-center w-full max-w-screen-s2xl mx-auto px-4"> 
             <div className="flex flex-col items-center md:text-xl font-bold text-white mb-8">
-              <h1 className="text-2xl lg:text-4xl py-2 px-4 lg:py-1 lg:px-8 w-fit mb-4 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
+              <h1 className="text-2xl lg:text-4xl py-2 px-4 lg:py-1 lg:px-8 w-fit mb-4 mt-8 md:mt-0 text-gray-100 bg-gray-800 rounded-lg ">Garden Tech</h1>
               <p className="text-lg lg:text-2xl py-1 px-4 lg:py-1 lg:px-8 w-fit mb-4 text-gray-100  bg-gray-800 rounded-lg">Mint and sell your own NFT </p>
               <p className="text-md lg:text-xl py-2 px-4 lg:py-1 lg:px-12 text-gray-100  bg-gray-800 rounded-lg">Find the NFT you are looking for </p>
             </div>
-            {/* CAMBIO: Reemplazado grid con flex */}
-            <div className="flex flex-wrap justify-center gap-8 mb-8">
+            <div className="flex flex-wrap flex-col md:flex-row justify-center w-full gap-4">
               {data.map((data, index) => (
                 <NFTTile data={data} key={index} />
               ))}

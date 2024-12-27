@@ -7,4 +7,7 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  corePlugins: {
+    preflight: true,  // Restablece el estilo base de Tailwind (habilitado por defecto)
+  },
 }

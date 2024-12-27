@@ -182,7 +182,7 @@ export default function SellNFT() {
                                 </div>
                                 <div>
                                     <label className="block text-gray-100 text-sm font-bold mb-2" htmlFor="image">Upload Image (&lt;500 KB)</label>
-                                    <input type={"file"} onChange={OnChangeFile}></input>
+                                    <input type={"file"} onChange={OnChangeFile} className="text-xs md:text-xl "></input>
                                 </div>
                                 <div className="text-red-500 text-center mt-3">{message}</div>
                                 <button onClick={listNFT} className="font-bold text-gray-900 mt-4 w-full bg-gray-400 rounded p-2 shadow-lg hover:bg-gray-300" id="list-button">

@@ -131,6 +131,10 @@ contract Proxy1967GardenTechMarketplaceTest is Test {
         assertEq(address(proxy).balance, 1 ether);
     }
 
+    ////////////////////////////////////////////////////////////////
+    ///                 testOnERC721Received                     ///
+    ////////////////////////////////////////////////////////////////
+
     function testOnERC721Received() public {
         uint256 listPrice = IGardenTechMarketplace(payable(address(proxy)))
             .getListPrice();

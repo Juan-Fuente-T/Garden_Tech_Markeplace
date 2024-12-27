@@ -89,7 +89,7 @@ function Navbar() {
           </li>
           </ul>*/}
       </nav>
-      <div className='text-sky-700 font-bold text-right mr-10 text-md'>
+      <div className='text-sky-700 font-bold text-center md:text-right md:mr-10  text-md'>
         {/* <div className='text-white text-bold text-right mr-10 text-sm bg-sky-700 w-fit py-1 px-2 flex justify-end'> */}
         {/* {address ? `Connected to ${address.substring(0, 15)}...` : "Not Connected. Please login"}  */}
         {address ? `Connected to ${address.substring(0, 7)}...${address.substring(address.length - 6)}` : "Not Connected. Please login"}

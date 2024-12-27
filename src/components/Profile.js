@@ -91,7 +91,7 @@ export default function Profile() {
                     <div className="flex flex-col items-center w-full p-4 overflow-y-auto"> 
                         <div className="flex text-center flex-col items-center md:text-2xl text-white">
                             <div className="flex flex-row text-center justify-center md:text-2xl">
-                                <h2 className="text-sm font-bold py-2 px-2 text-gray-100 bg-gray-800 rounded-lg mt-4">Your wallet address: {address}</h2>
+                                <h2 className="text-xs font-bold py-2 px-2 text-gray-100 bg-gray-800 rounded-lg mt-4">Your wallet address: {address}</h2>
                             </div>
                         </div>
                         <div className="flex flex-col items-center lg:flex-row text-center justify-center mt-6 md:text-2xl">
