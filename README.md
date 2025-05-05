@@ -45,7 +45,7 @@ Puedes ver más detalles y una demo en la página del proyecto dentro de mi port
 
 2.  **Clonar Repositorio:**
     ```bash
-    git clone [https://github.com/Juan-Fuente-T/Garden_Tech_Markeplace.git](https://github.com/Juan-Fuente-T/Garden_Tech_Markeplace.git)
+    git clone https://github.com/Juan-Fuente-T/Garden_Tech_Markeplace.git
     cd Garden_Tech_Markeplace
     ```
 3.  **Instalar Dependencias:**
@@ -53,7 +53,6 @@ Puedes ver más detalles y una demo en la página del proyecto dentro de mi port
     # Comando/s para instalar dependencias (frontend y contratos)
     npm install
     ```
-    `[TU AYUDA AQUÍ: Proporcionar comandos y carpetas]`
 4.  **Configurar Variables de Entorno:**
     * Crear archivo `.env`.
     * Añadir variables: `REACT_APP_PINATA_KEY`, `REACT_APP_PINATA_SECRET`(Conexión a Pinata)
