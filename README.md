@@ -4,9 +4,9 @@
 
 Una Aplicación Descentralizada (DApp) full-stack construida sobre la red de pruebas **Sepolia (Ethereum)** que funciona como un marketplace para **crear (mintear), vender y comprar NFTs**. El proyecto implementa almacenamiento descentralizado con **IPFS** y utiliza el patrón **UUPS Proxy** para permitir la actualización de los smart contracts.
 
-`![Garden Tech Marketplace Screenshot](src/assets/GardenTechImage1.png)`
+![Garden Tech Marketplace Screenshot](src/assets/GardenTechImage1.png)
 
-`![Foundry Test Coverage](src/assets/GardenTechTestCoverage.png)`
+![Foundry Test Coverage](src/assets/GardenTechTestCoverage.png)
 
 ## Características Principales ✨
 
@@ -72,11 +72,11 @@ Puedes ver más detalles y una demo en la página del proyecto dentro de mi port
 3.  Explora el "Marketplace" para ver los NFTs disponibles.
 4.  Haz clic en un NFT para ver sus detalles y comprarlo si está a la venta.
 5.  En "Mi Perfil" (o similar) puedes ver tus NFTs y gestionar los que tienes a la venta (cambiar precio, retirar).
+   
 
+![Garden Tech Usage](src/assets/GardenTechImage2.png)
 
-`![Garden Tech Usage](src/assets/GardenTechImage2.png)`
-
-`![Garden Tech Usage](src/assets/GardenTechImage3.png)`
+![Garden Tech Usage](src/assets/GardenTechImage3.png)
 
 ## Retos y Aprendizajes Clave 🧠
 
