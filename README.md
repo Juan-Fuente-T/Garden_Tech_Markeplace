@@ -1,49 +1,96 @@
-# GARDEN TECH NFT
+# Garden Tech NFT Marketplace 🌳🖼️
 
-**Garden Tech NFT Marketplace** is a decentralized application (dApp) that allows users on the Sepolia network to connect their wallet, create, and sell NFTs. Users can upload images, assign them a name, description, and price, and put them up for sale. Transactions are conducted exclusively with Sepolia Ether.
+## Descripción Breve
 
-## Features
+Una Aplicación Descentralizada (DApp) full-stack construida sobre la red de pruebas **Sepolia (Ethereum)** que funciona como un marketplace para **crear (mintear), vender y comprar NFTs**. El proyecto implementa almacenamiento descentralizado con **IPFS** y utiliza el patrón **UUPS Proxy** para permitir la actualización de los smart contracts.
 
-- **Wallet Connection**: Users can connect their wallet to interact with the application.
-- **NFT Creation**: Upload images with name, description, and price.
-- **Sepolia Transactions**: Buy and sell NFTs using Ether on the Sepolia network.
-- **Responsive**: Design adaptable to different screen sizes.
-- **Monetization**: The user receives a percentage of each sale made.
-- **Ownership**: The user can simply acquire the NFT for themselves.
+`![Garden Tech Marketplace Screenshot](src/assets/GardenTechImage1.png)`
 
-## Technologies Used
+`![Foundry Test Coverage](src/assets/GardenTechTestCoverage.png)`
 
-- **JavaScript**
-- **React**
-- **Ethers.js**
+## Características Principales ✨
 
-## Installation
+* **Minting de NFTs:** Permite a los usuarios crear NFTs únicos subiendo una imagen y proporcionando metadatos (nombre, descripción, precio).
+* **Almacenamiento en IPFS:** Las imágenes y metadatos de los NFTs se suben y almacenan de forma descentralizada en IPFS, guardando solo el CID en el smart contract.
+* **Marketplace Funcional:** Los usuarios pueden listar sus NFTs a la venta, explorar los NFTs disponibles en el mercado y comprarlos conectando su wallet.
+* **Lógica de Compra Flexible:** Al adquirir un NFT, se puede optar por mantenerlo listado para reventa o retirarlo completamente del mercado.
+* **Gestión de Propiedad:** Los propietarios de NFTs pueden modificar el precio de venta de sus activos listados o retirarlos del mercado.
+* **Perfil de Usuario:** Muestra los NFTs que el usuario conectado ha minteado o posee actualmente.
+* **Dashboard Básico:** Indica el número total de NFTs minteados y actualmente en venta en la plataforma.
+* **Contratos Actualizables (UUPS Proxy):** El smart contract principal implementa el patrón UUPS Proxy, permitiendo futuras actualizaciones de la lógica sin perder el estado ni cambiar la dirección del contrato principal.
+* **Alta Cobertura de Tests:** Los smart contracts fueron desarrollados con un fuerte enfoque en la calidad, alcanzando una **cobertura de testing unitario superior al 90%** utilizando Foundry (contrato principal >99%).
 
-1. Clone the repository. Open a terminal and run:
-   -git clone https://github.com/yourusername/your-repository.git
-2. Navigate to the project directory:
-   -cd your-repository
-3. Install dependencies:
-   -npm install
+## Tecnologías Utilizadas 🛠️
 
-## Usage
+* **Smart Contracts:** Solidity, Patrón UUPS Proxy
+* **Testing:** Foundry (Cobertura >90%)
+* **Entorno Desarrollo Contratos:** Foundry
+* **Frontend:** React, JavaScript, CSS, Tailwind
+* **Librerías Web3 Frontend:** Ethers.js, Axios (para llamadas a IPFS Gateway).
+* **Almacenamiento Descentralizado:** IPFS (Pinata) 
+* **Blockchain:** Ethereum (Sepolia Testnet)
+* **Wallet:** Metamask (o compatible)
 
-1. Start the application:
-   -npm start
-2. Open your browser and visit http://localhost:3000 to see the application in action.
-3. Connect your Ethereum wallet compatible with Sepolia.
-4. Create, buy, and sell NFTs in the marketplace.
+## Demo / Más Información 🔗
 
-## Contribution
+Puedes ver más detalles y una demo en la página del proyecto dentro de mi portfolio:
+**[https://juanfuente.ovh/gardentech_marketplace/](https://juanfuente.ovh/gardentech_marketplace/)**
 
-If you wish to contribute to this project, please follow these steps:
+## Cómo Empezar (Desarrollo Local) 🚀
 
-- Fork the project.
-- Create a new branch for your feature (git checkout -b feature/new-feature).
-- Make your changes and commit (git commit -m 'Add new feature').
-- Push your changes to the branch (git push origin feature/new-feature).
-- Open a Pull Request.
+1.  **Prerrequisitos:**
+    * Node.js, npm/yarn, Git
+    * Foundry 
+    * Wallet (Metamask).
 
-## License
+2.  **Clonar Repositorio:**
+    ```bash
+    git clone [https://github.com/Juan-Fuente-T/Garden_Tech_Markeplace.git](https://github.com/Juan-Fuente-T/Garden_Tech_Markeplace.git)
+    cd Garden_Tech_Markeplace
+    ```
+3.  **Instalar Dependencias:**
+    ```bash
+    # Comando/s para instalar dependencias (frontend y contratos)
+    npm install
+    ```
+    `[TU AYUDA AQUÍ: Proporcionar comandos y carpetas]`
+4.  **Configurar Variables de Entorno:**
+    * Crear archivo `.env`.
+    * Añadir variables: `REACT_APP_PINATA_KEY`, `REACT_APP_PINATA_SECRET`(Conexión a Pinata)
+    * *Añadir `.env` a `.gitignore`.*
+5.  **Iniciar Frontend:**
+    ```bash
+    # Comando para iniciar el frontend (ej. npm run dev)
+    npm start
+    ```
+6.  Abrir `http://localhost:3000` (o puerto indicado).
 
-This project is licensed under the MIT License.
+## Uso Básico 🖱️
+
+1.  Conecta tu wallet (Metamask) en la red Sepolia.
+2.  Ve a "Crear NFT" para mintear tu propio token (necesitarás una imagen y rellenar los datos). Aprueba las transacciones.
+3.  Explora el "Marketplace" para ver los NFTs disponibles.
+4.  Haz clic en un NFT para ver sus detalles y comprarlo si está a la venta.
+5.  En "Mi Perfil" (o similar) puedes ver tus NFTs y gestionar los que tienes a la venta (cambiar precio, retirar).
+
+
+`![Garden Tech Usage](src/assets/GardenTechImage2.png)`
+
+`![Garden Tech Usage](src/assets/GardenTechImage3.png)`
+
+## Retos y Aprendizajes Clave 🧠
+
+*(Resumen de los puntos de tu portfolio)*
+* Implementación del patrón **UUPS Proxy** para contratos actualizables.
+* Gestión del almacenamiento descentralizado con **IPFS** para metadatos/imágenes.
+* Diseño de lógica compleja para la **compra/venta/gestión** de NFTs.
+* Logro de alta **cobertura de tests (>90%)** con Foundry.
+* Manejo de **routing y estado** en una DApp React multi-página.
+
+## Licencia 📄
+
+MIT License.
+
+## Contacto 📬
+
+Juan Fuente - [https://www.linkedin.com/in/juan-fuente-dev/] - [https://juanfuente.ovh] - jfuentet@gmail.com

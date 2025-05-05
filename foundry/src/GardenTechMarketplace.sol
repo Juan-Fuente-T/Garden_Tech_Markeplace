@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.24;
 
 //Console functions to help debug the smart contract just like in Javascript
 // import "hardhat/console.sol";
@@ -41,8 +41,8 @@ contract GardenTechMarketplace is
     struct ListedToken {
         uint256 tokenId;
         uint256 price;
-        address payable owner;
-        address payable seller;
+        address owner;
+        address seller;
         bool currentlyListed;
     }
     //_tokenIds variable has the most recent minted tokenId
@@ -52,7 +52,7 @@ contract GardenTechMarketplace is
     //The fee charged by the marketplace to be allowed to list an NFT
     uint256 listPrice;
     //owner is the contract address that created the smart contract
-    address payable public owner;
+    address public owner;
     //The name of  the NFT Marketplace
     string public marketplaceName;
 
